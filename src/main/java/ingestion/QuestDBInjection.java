@@ -21,7 +21,7 @@ public class QuestDBInjection extends Injection {
 
     @Override
     public void insertData(int recordCount) {
-        clearTables();
+
         // Create a Sender instance with the configuration (HTTP URL)
         try (Sender sender = Sender.fromConfig("http::addr=" + QUESTDB_URL)) {
 

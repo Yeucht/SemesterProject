@@ -5,7 +5,12 @@ public abstract class DBManager {
 
     public DBManager(boolean clean) {
         this.clearTablesFlag = clean;
+        clearTables();
     }
+
+    //overload for IoTDBManager
+    public DBManager() {}
+
 
     public abstract boolean clearTables();
 }

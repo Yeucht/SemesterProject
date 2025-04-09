@@ -16,6 +16,7 @@ public class Simulation {
     static {
         DATABASES.put("questdb", QuestDBInjection.class);
         DATABASES.put("influxdb", InfluxDBInjection.class);
+        DATABASES.put("iotdb", IoTDBInjection.class);
     }
 
     // Constructor receives configuration instead of scanning user input

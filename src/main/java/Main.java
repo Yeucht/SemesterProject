@@ -8,7 +8,7 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
 
         // Ask user for database choice
-        System.out.println("Choose database (questdb / influxdb): ");
+        System.out.println("Choose database (questdb / influxdb / iotdb): ");
         String databaseType = scanner.next().toLowerCase();
 
         // Ask if tables should be cleared
