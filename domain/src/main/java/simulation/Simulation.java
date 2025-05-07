@@ -2,7 +2,7 @@ package simulation;
 
 import ingestion.*;
 import dbmanager.*;
-
+import config.Config;
 import java.util.*;
 
 ///We will have vectors of simulations (we want one simulation to be able to compare 2 DB with the same presets)

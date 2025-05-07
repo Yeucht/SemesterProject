@@ -1,8 +1,9 @@
 package dbmanager;
 
+import org.apache.iotdb.rpc.StatementExecutionException;
 import org.apache.iotdb.session.pool.SessionPool;
 import org.apache.iotdb.session.Session;
-
+import org.apache.iotdb.rpc.IoTDBConnectionException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,15 +12,12 @@ public class IoTDBManager extends DBManager {
     private static final List<String> nodeUrls = new ArrayList<>();
     private static final String USER = "root";
     private static final String PASSWORD = "root";
-    private SessionPool sessionPool;
+    private final SessionPool sessionPool;
 
-    static {
-        nodeUrls.add("127.0.0.1");
-    }
 
     public IoTDBManager(boolean clear) {
         // Create session pool directly
-        this.sessionPool = new SessionPool(nodeUrls.get(0), 6667, USER, PASSWORD, 3);
+        this.sessionPool = new SessionPool("127.0.0.1", 6667, USER, PASSWORD, 3);
         super.clearTablesFlag = clear;
     }
 
@@ -70,8 +68,12 @@ public class IoTDBManager extends DBManager {
 
             System.out.println("Storage group and time series created successfully.");
             return true;
-        } catch (Exception e) {
-            System.out.println("Error creating storage group or time series:");
+        } catch (StatementExecutionException e) {
+            System.out.println("Error creating storage group or time series: statement error");
+            e.printStackTrace();
+            return false;
+        } catch (IoTDBConnectionException e){
+            System.out.println("Error creating storage group or time series: connection error");
             e.printStackTrace();
             return false;
         }

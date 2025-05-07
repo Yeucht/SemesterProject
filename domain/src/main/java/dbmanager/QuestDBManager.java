@@ -23,6 +23,7 @@ public class QuestDBManager extends DBManager {
             return false;
         }
 
+
         try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
              Statement stmtSelect = conn.createStatement();
              Statement stmtDrop = conn.createStatement();
