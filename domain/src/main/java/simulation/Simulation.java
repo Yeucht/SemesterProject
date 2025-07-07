@@ -46,7 +46,7 @@ public class Simulation {
     // Start the simulation
     public void run() {
         System.out.println("Starting simulation with " + numberOfRecords + " records...");
-        dbInjection.insertData(numberOfRecords);
+        //dbInjection.insertData(numberOfRecords);
         System.out.println("Simulation completed!");
     }
 }

@@ -17,8 +17,8 @@ public class InfluxDBInjection extends Injection {
     }
 
     @Override
-    public void insertData(int recordCount) {
-
+    public void insertData(DataPacket data) {}
+/*
         try (InfluxDBClient client = InfluxDBClientFactory.create(INFLUX_URL, TOKEN.toCharArray(), ORG, BUCKET)) {
             var writeApi = client.getWriteApiBlocking();
             long startTime = System.currentTimeMillis();
@@ -37,5 +37,5 @@ public class InfluxDBInjection extends Injection {
 
             System.out.println("InfluxDB Ingestion Time: " + (System.currentTimeMillis() - startTime) + "ms");
         }
-    }
+    }*/
 }

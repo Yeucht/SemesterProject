@@ -27,11 +27,11 @@ public class IoTDBInjection extends Injection {
     }
 
     @Override
-    public void insertData(int recordCount) {
+    public void insertData(DataPacket data) {
 
         SessionPool sessionPool = ioTDBManager.getSessionPool();
-        long startTime = System.currentTimeMillis();
-
+        long startTime = System.currentTimeMillis();}
+/*
         try {
             for (int i = 0; i < recordCount; i++) {
                 String[] data = generateMeterData().split(",");
@@ -59,7 +59,7 @@ public class IoTDBInjection extends Injection {
         long endTime = System.currentTimeMillis();
         System.out.println("IoTDB Ingestion Time: " + (endTime - startTime) + " ms");
     }
-
+*/
     @Override
     protected String generateMeterData() {
         long timestamp = System.currentTimeMillis(); // current time in ms

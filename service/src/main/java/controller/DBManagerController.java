@@ -1,0 +1,32 @@
+package controller;
+
+import dbmanager.DBManager;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import service.DBManagerService;
+
+@RestController
+@RequestMapping("/dbmanager")
+public class DBManagerController {
+
+    private final DBManagerService dbManagerService;
+
+    @Autowired
+    public DBManagerController(DBManagerService dbManagerService) {
+        this.dbManagerService = dbManagerService;
+    }
+
+    @PostMapping("/clear")
+    ResponseEntity<String> clearTables(){
+        if (dbManagerService.clearTables()) {
+            return ResponseEntity.ok("Successfully cleared tables");
+        }else{
+            return ResponseEntity.ok("Failed to clear tables");
+        }
+    }
+}

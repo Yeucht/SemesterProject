@@ -7,9 +7,11 @@ public class Config {
         QUESTDB
     }
 
-    private DatabaseType dbType;
+    private DatabaseType dbType = DatabaseType.QUESTDB;
     private boolean clearTablesFlag = false;
-    private long retentionWindowMillis;
+    private long retentionWindowMillis = 1000000000;
+
+    public Config() {}
 
     public Config(DatabaseType dbType, boolean clearOnStart, long retentionWindowMillis) {
         this.dbType = dbType;

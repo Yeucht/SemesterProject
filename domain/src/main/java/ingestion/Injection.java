@@ -15,7 +15,7 @@ public abstract class Injection {
     }
 
     // Method to be overridden for inserting records
-    public abstract void insertData(int recordCount);
+    public abstract void insertData(DataPacket data);
 
     // Generates a single meter data record
     protected String generateMeterData() {

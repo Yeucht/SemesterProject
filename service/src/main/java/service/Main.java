@@ -7,13 +7,14 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import dbmanager.*;
 
-@SpringBootApplication(scanBasePackages = {"service", "controller"})
+@SpringBootApplication(scanBasePackages = {"service", "controller", "config", "factories", "infrastructure"})
 @RestController
 public class Main {
     @RequestMapping("/")
     public String home() {
-        return "Hello Docker World";
+        return "Welcome to IoT data ingestion benchmarking project";
     }
 
     @Bean

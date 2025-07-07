@@ -1,49 +1,50 @@
 package ingestion;
 
+import dbmanager.DBManager;
 import dbmanager.QuestDBManager;
 import io.questdb.client.Sender;
+import java.util.List;
 
 public class QuestDBInjection extends Injection {
-    private static final String QUESTDB_URL = "localhost:9000;";  // Update to HTTP connection URL for QuestDB
+    private static final String QUESTDB_URL = "localhost:9000";
     private static final String TABLE_NAME = "smart_meter";
-    private QuestDBManager QuestDBManager;
+    private QuestDBManager questDBManager;
 
-    public QuestDBInjection(boolean clean){
+    public QuestDBInjection(boolean clean, DBManager dbManager) {
         super(clean);
-        this.QuestDBManager = new QuestDBManager(clean);
+        this.questDBManager = (QuestDBManager) dbManager;
     }
 
     @Override
-    protected boolean clearTables(){
-        return QuestDBManager.clearTables();
+    protected boolean clearTables() {
+        return questDBManager.clearTables();
     }
 
-
-    @Override
-    public void insertData(int recordCount) {
-
-        // Create a Sender instance with the configuration (HTTP URL)
+    // New method to insert real DataPacket received from controller
+    public void insertData(DataPacket packet) {
         try (Sender sender = Sender.fromConfig("http::addr=" + QUESTDB_URL)) {
+            List<MeterData> meterDataList = packet.getMeteringData();
 
-            long startTime = System.currentTimeMillis();
-            for (int i = 0; i < recordCount; i++) {
-                // Generate data for smart meter, assuming generateMeterData() returns comma-separated values like: "timestamp,meter_id,power_consumption,voltage,current"
-                String[] data = generateMeterData().split(",");
-
-                // Use the Sender API to insert data into the "smart_meter" table
-                sender.table(TABLE_NAME) // Assuming timestamp is in milliseconds
-                        .symbol("meter_id", String.valueOf(data[1]))  // Assuming meter_id is an integer
-                        .doubleColumn("power_consumption", Double.parseDouble(data[2]))  // power_consumption as double
-                        .doubleColumn("voltage", Double.parseDouble(data[3]))  // voltage as double
-                        .doubleColumn("current", Double.parseDouble(data[4]))  // current as double
-                        .atNow();  // Sends the data immediately
+            for (MeterData data : meterDataList) {
+                sender.table(TABLE_NAME)
+                        .symbol("meter_id", packet.getAuthSerialNumber())
+                        .doubleColumn("sequence", data.getSequence())
+                        .doubleColumn("status", data.getStatus())
+                        .doubleColumn("version", data.getVersion())
+                        .longColumn("received_time", packet.getReceivedTime())
+                        .doubleColumn("payload_avg", averagePayload(data.getPayload())) // Example
+                        .atNow();
             }
 
-            // Print the time taken to insert data
-            System.out.println("QuestDB Ingestion Time: " + (System.currentTimeMillis() - startTime) + "ms");
+            System.out.println("Ingested DataPacket to QuestDB");
 
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private double averagePayload(List<Integer> payload) {
+        if (payload == null || payload.isEmpty()) return 0.0;
+        return payload.stream().mapToInt(i -> i).average().orElse(0.0);
     }
 }

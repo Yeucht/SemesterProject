@@ -5,13 +5,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import service.ConfigService;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
 @RestController
 @RequestMapping("/config")
 public class ConfigController {
 
     private final ConfigService configService;
 
-    @Autowired
     public ConfigController(ConfigService configService) {
         this.configService = configService;
     }
@@ -30,8 +33,17 @@ public class ConfigController {
 
     // Set the configuration using POST (can be considered as a default/initial configuration)
     @PostMapping
-    public void createConfig(@RequestBody Config newConfig) {
-        configService.createConfig(newConfig); // Fixed missing semicolon
+    public void createConfig(@RequestBody Config newConfig) throws IOException {
+        try {
+            System.out.println("Received config: " + newConfig);
+            configService.updateConfig(newConfig);
+            URL url = new URL("http://localhost:8000");
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod("POST");
+        } catch (Exception e) {
+            e.printStackTrace(); // <-- This will dump the real issue to logs
+            throw e; // still lets Spring handle the exception normally
+        }
     }
 
     // Reset configuration to default values
