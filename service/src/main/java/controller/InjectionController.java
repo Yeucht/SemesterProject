@@ -3,10 +3,7 @@ package controller;
 import ingestion.DataPacket;
 import ingestion.Injection;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import service.InjectionService;
 
 @RestController
@@ -14,6 +11,10 @@ import service.InjectionService;
 public class InjectionController {
 
     private InjectionService injectionService;
+
+    public InjectionController(InjectionService injectionService) {
+        this.injectionService = injectionService;
+    }
 
     @PostMapping("/data")
     public ResponseEntity<String> injection(@RequestBody DataPacket data) {
@@ -23,5 +24,11 @@ public class InjectionController {
         injectionService.sendDataToDataBase(data);
 
         return ResponseEntity.ok("Received");
+    }
+
+    @GetMapping("/data")
+    public ResponseEntity<String> injection() {
+        System.out.println("Ready to serve trafic");
+        return ResponseEntity.ok("Ready to serve trafic");
     }
 }

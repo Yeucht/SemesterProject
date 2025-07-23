@@ -7,15 +7,17 @@ import factories.InjectionFactory;
 import ingestion.QuestDBInjection;
 import org.springframework.stereotype.Service;
 
-@Service
+
 public class InjectionService {
 
     private final ConfigService configService;
     private final InjectionFactory injectionFactory;
+    private Injection injection = new QuestDBInjection(new Config());
 
     public InjectionService(ConfigService configService, InjectionFactory injectionFactory) {
         this.configService = configService;
         this.injectionFactory = injectionFactory;
+        this.injection = injectionFactory.createInjection(configService.getConfig());
     }
 
     public void sendDataToDataBase(DataPacket data) {

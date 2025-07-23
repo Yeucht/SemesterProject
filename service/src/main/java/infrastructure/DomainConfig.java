@@ -15,7 +15,7 @@ public class DomainConfig {
     @Bean
     public ConfigService configService() {
         // Initial default config
-        return new ConfigService(new Config(Config.DatabaseType.QUESTDB, false, 86400000));
+        return new ConfigService(new Config());
     }
 
     @Bean

@@ -1,5 +1,6 @@
 package dbmanager;
 
+import config.Config;
 import org.apache.iotdb.rpc.StatementExecutionException;
 import org.apache.iotdb.session.pool.SessionPool;
 import org.apache.iotdb.session.Session;
@@ -15,15 +16,15 @@ public class IoTDBManager extends DBManager {
     private final SessionPool sessionPool;
 
 
-    public IoTDBManager(boolean clear) {
+    public IoTDBManager(Config config) {
         // Create session pool directly
+        super(config);
         this.sessionPool = new SessionPool("127.0.0.1", 6667, USER, PASSWORD, 3);
-        super.clearTablesFlag = clear;
     }
 
     // Clear time series under a specific root path
     public boolean clearTables() {
-        if (!clearTablesFlag) {
+        if (!config.getClearTablesFlag()) {
             System.out.println("Table clearing is disabled. Skipping...");
             return false;
         }

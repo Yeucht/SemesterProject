@@ -2,25 +2,27 @@ package service;
 
 import config.Config;
 import dbmanager.DBManager;
+import dbmanager.QuestDBManager;
 import factories.DBManagerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-@Service
+
 public class DBManagerService {
 
-    private final ConfigService configService;
-    private final DBManagerFactory dbManagerFactory;
+    private ConfigService configService;
+    private DBManagerFactory dbManagerFactory;
+    private DBManager dbManager = new QuestDBManager(new Config());
 
-    @Autowired
     public DBManagerService(ConfigService configService, DBManagerFactory dbManagerFactory) {
         this.configService = configService;
         this.dbManagerFactory = dbManagerFactory;
+        this.dbManager = dbManagerFactory.createManager(configService.getConfig());
     }
 
     public boolean clearTables() {
-        Config config = configService.getConfig();
-        DBManager dbManager = dbManagerFactory.createManager(config);
         return dbManager.clearTables();
     }
+
+
 }

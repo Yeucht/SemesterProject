@@ -4,6 +4,8 @@ import com.influxdb.client.InfluxDBClient;
 import com.influxdb.client.InfluxDBClientFactory;
 import com.influxdb.client.domain.WritePrecision;
 import com.influxdb.client.write.Point;
+import config.Config;
+
 import java.time.Instant;
 
 public class InfluxDBInjection extends Injection {
@@ -12,8 +14,8 @@ public class InfluxDBInjection extends Injection {
     private static final String ORG = "UNIL";
     private static final String BUCKET = "smart_meters";
 
-    public InfluxDBInjection(boolean clean){
-        super(clean);
+    public InfluxDBInjection(Config config){
+        super(config);
     }
 
     @Override

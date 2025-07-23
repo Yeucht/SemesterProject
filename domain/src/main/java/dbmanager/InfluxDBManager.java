@@ -1,5 +1,6 @@
 package dbmanager;
 
+import config.Config;
 import org.influxdb.InfluxDB;
 import org.influxdb.InfluxDBFactory;
 import org.influxdb.dto.Query;
@@ -12,14 +13,14 @@ public class InfluxDBManager extends DBManager {
 
     private InfluxDB influxDB;
 
-    public InfluxDBManager(boolean clean) {
-        super(clean);
+    public InfluxDBManager(Config config) {
+        super(config);
         this.influxDB = InfluxDBFactory.connect(URL, USER, PASSWORD);
     }
 
     @Override
     public boolean clearTables() {
-        if (!clearTablesFlag) {
+        if (!config.getClearTablesFlag()) {
             System.out.println("Table clearing is disabled. Skipping...");
             return false;
         }

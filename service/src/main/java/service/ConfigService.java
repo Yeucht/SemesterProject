@@ -4,17 +4,15 @@ import config.Config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-@Service
+
 public class ConfigService {
-    private volatile Config config = new Config();
+    private Config config = new Config();
 
     public ConfigService(Config config) {
         this.config = config;
     }
 
-    public ConfigService() {
-        this.config = new Config(Config.DatabaseType.QUESTDB, false, 86400000); // Example default
-    }
+    public ConfigService() {}
 
     // Get the current configuration
     public Config getConfig() {

@@ -16,7 +16,6 @@ public class DBManagerController {
 
     private final DBManagerService dbManagerService;
 
-    @Autowired
     public DBManagerController(DBManagerService dbManagerService) {
         this.dbManagerService = dbManagerService;
     }

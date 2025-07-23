@@ -9,13 +9,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import dbmanager.*;
 
-@SpringBootApplication(scanBasePackages = {"service", "controller", "config", "factories", "infrastructure"})
+@SpringBootApplication(scanBasePackages = {"service", "controller", "factories", "infrastructure"})
 @RestController
 public class Main {
     @RequestMapping("/")
     public String home() {
         return "Welcome to IoT data ingestion benchmarking project";
     }
+
 
     @Bean
     public CommandLineRunner checkBeans(ApplicationContext ctx) {

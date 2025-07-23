@@ -1,14 +1,10 @@
-# Use a lightweight OpenJDK base image
-FROM openjdk:17-jdk-alpine
+FROM openjdk:17-jdk-slim
 
-# Set working directory inside the container
+# Install libstdc++ (needed for C++ dependencies)
+RUN apt-get update && apt-get install -y libstdc++6
+
 WORKDIR /app
-
-# Copy the built JAR into the container
 COPY target/service-3.2.0.jar app.jar
 
-# Expose port (update if your app uses a different one)
 EXPOSE 8080
-
-# Run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]

@@ -7,14 +7,14 @@ import ingestion.Injection;
 import ingestion.QuestDBInjection;
 import org.springframework.stereotype.Component;
 
-@Component
+
 public class InjectionFactory {
 
     public Injection createInjection(Config config) {
         switch (config.getDbType()) {
             case QUESTDB:
-                DBManager questDbManager = new QuestDBManager(config.getClearTablesFlag());
-                return new QuestDBInjection(config.getClearTablesFlag(), questDbManager);
+                DBManager questDbManager = new QuestDBManager(config);
+                return new QuestDBInjection(config);
             default:
                 throw new IllegalArgumentException("Unsupported DB type: " + config.getDbType());
         }

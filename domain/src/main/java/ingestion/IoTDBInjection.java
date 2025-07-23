@@ -1,5 +1,6 @@
 package ingestion;
 
+import config.Config;
 import dbmanager.IoTDBManager;
 import org.apache.iotdb.session.pool.SessionPool;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
@@ -15,16 +16,11 @@ public class IoTDBInjection extends Injection {
     private static final String IOTDB_PATH = "root.smart_meter"; // Ensure consistency with IoTDBManager
     private final IoTDBManager ioTDBManager;
 
-    public IoTDBInjection(boolean clean) {
-        super(clean);
-        this.ioTDBManager = new IoTDBManager(clean);
+    public IoTDBInjection(Config config) {
+        super(config);
+        this.ioTDBManager = new IoTDBManager(config);
     }
 
-    // Uses IoTDBManager to clear timeseries
-    @Override
-    protected boolean clearTables() {
-        return ioTDBManager.clearTables();
-    }
 
     @Override
     public void insertData(DataPacket data) {
@@ -60,16 +56,5 @@ public class IoTDBInjection extends Injection {
         System.out.println("IoTDB Ingestion Time: " + (endTime - startTime) + " ms");
     }
 */
-    @Override
-    protected String generateMeterData() {
-        long timestamp = System.currentTimeMillis(); // current time in ms
-        String meterId = "meter_" + (int)(Math.random() * 100); // e.g., meter-42
-        double powerConsumption = 100 + Math.random() * 900; // Between 100 and 1000
-        double voltage = 210 + Math.random() * 10; // Around 220V
-        double current = 5 + Math.random() * 10; // Between 5A and 15A
-
-        // Return as a CSV-style string (comma-separated)
-        return String.format("%d,%s,%.3f,%.2f,%.2f", timestamp, meterId, powerConsumption, voltage, current);
-    }
 
 }

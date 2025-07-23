@@ -9,7 +9,7 @@ import dbmanager.QuestDBManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
-@Component
+
 public class DBManagerFactory {
 
     public DBManagerFactory() {}
@@ -18,11 +18,11 @@ public class DBManagerFactory {
         DatabaseType dbtype = config.getDbType();
         switch (dbtype) {
             case IOTDB:
-                return new IoTDBManager(config.getClearTablesFlag());
+                return new IoTDBManager(config);
             case INFLUXDB:
-                return new InfluxDBManager(config.getClearTablesFlag());
+                return new InfluxDBManager(config);
             case QUESTDB:
-                return new QuestDBManager(config.getClearTablesFlag());
+                return new QuestDBManager(config);
             default: throw new IllegalArgumentException("Unsupported database type: " + dbtype);
         }
     }

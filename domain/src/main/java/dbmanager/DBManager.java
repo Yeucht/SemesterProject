@@ -1,12 +1,13 @@
 package dbmanager;
 
+import config.Config;
+
 public abstract class DBManager {
-    protected boolean clearTablesFlag;
+    protected Config config = new Config();
 
 
-    public DBManager(boolean clean) {
-        this.clearTablesFlag = clean;
-        clearTables();
+    public DBManager(Config config) {
+        this.config = config;
     }
 
     //overload for IoTDBManager
