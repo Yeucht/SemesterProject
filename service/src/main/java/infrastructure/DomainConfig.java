@@ -8,33 +8,33 @@ import org.springframework.context.annotation.Configuration;
 import service.ConfigService;
 import service.DBManagerService;
 import service.InjectionService;
+import service.SimulationService;
 
 @Configuration
 public class DomainConfig {
 
     @Bean
-    public ConfigService configService() {
-        // Initial default config
-        return new ConfigService(new Config());
+    public Config config(){
+        return new Config();
     }
 
     @Bean
-    public DBManagerFactory dbManagerFactory() {
-        return new DBManagerFactory();
+    public ConfigService configService(Config config, DBManagerService dbManagerService, InjectionService injectionService) {
+        return new ConfigService(config, dbManagerService, injectionService);
     }
 
     @Bean
-    public InjectionFactory injectionFactory() {
-        return new InjectionFactory();
+    public DBManagerService dbManagerService(Config config) {
+        return new DBManagerService(config);
     }
 
     @Bean
-    public DBManagerService dbManagerService(ConfigService configService, DBManagerFactory dbManagerFactory) {
-        return new DBManagerService(configService, dbManagerFactory);
+    public InjectionService injectionService(Config config) {
+        return new InjectionService(config);
     }
 
     @Bean
-    public InjectionService injectionService(ConfigService configService, InjectionFactory injectionFactory) {
-        return new InjectionService(configService, injectionFactory);
+    public SimulationService simulationService(ConfigService configService) {
+        return new SimulationService(configService);
     }
 }

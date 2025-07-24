@@ -1,5 +1,6 @@
 package controller;
 
+import config.Config;
 import dbmanager.DBManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -27,5 +28,10 @@ public class DBManagerController {
         }else{
             return ResponseEntity.ok("Failed to clear tables");
         }
+    }
+
+    @GetMapping("/config")
+    Config getConfig(){
+        return dbManagerService.getConfig();
     }
 }

@@ -4,30 +4,33 @@ import config.Config;
 import ingestion.DataPacket;
 import ingestion.Injection;
 import factories.InjectionFactory;
+import ingestion.IoTDBInjection;
 import ingestion.QuestDBInjection;
 import org.springframework.stereotype.Service;
 
 
 public class InjectionService {
 
-    private final ConfigService configService;
-    private final InjectionFactory injectionFactory;
-    private Injection injection = new QuestDBInjection(new Config());
+    private Config config;
+    private final InjectionFactory injectionFactory = new InjectionFactory();
+    private Injection injection;
 
-    public InjectionService(ConfigService configService, InjectionFactory injectionFactory) {
-        this.configService = configService;
-        this.injectionFactory = injectionFactory;
-        this.injection = injectionFactory.createInjection(configService.getConfig());
+    public InjectionService(Config config) {
+        this.config = config;
+        this.injection = injectionFactory.createInjection(config);
     }
 
-    public void sendDataToDataBase(DataPacket data) {
-        Config config = configService.getConfig();
-        Injection injection = injectionFactory.createInjection(config);
+    public void sendDataToDataBase(DataPacket data){
 
-        if (injection instanceof QuestDBInjection) {
-            ((QuestDBInjection) injection).insertData(data);
-        } else {
-            throw new UnsupportedOperationException("Injection type not supported.");
+        try {
+            injection.insertData(data);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+    }
+
+    public void update(Config config){
+        this.config = config;
+        this.injection = injectionFactory.createInjection(config);
     }
 }

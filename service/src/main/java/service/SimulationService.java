@@ -8,7 +8,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-@Service
+
 public class SimulationService {
     // Base URL for Flask simulation service
     private static final String FLASK_BASE_URL = "http://sp-simulation:8000";

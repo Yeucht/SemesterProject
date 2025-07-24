@@ -14,4 +14,8 @@ public abstract class DBManager {
     public DBManager() {}
 
     public abstract boolean clearTables();
+
+    public Config getConfig() {
+        return config;
+    }
 }

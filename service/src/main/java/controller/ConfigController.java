@@ -40,6 +40,20 @@ public class ConfigController {
         }
     }
 
+    @PutMapping
+    public void updateConfig(@RequestBody Config newConfig) throws IOException {
+        try {
+            System.out.println("Received config: " + newConfig);
+            configService.updateConfig(newConfig);
+            URL url = new URL("http://sp-simulation:8000/config");
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod("POST");
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
     // Reset configuration to default values
     @DeleteMapping
     public void resetConfig() {
