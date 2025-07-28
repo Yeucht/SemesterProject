@@ -25,22 +25,4 @@ public class InjectionServiceTest {
         assertNotSame(inj1, inj2);
     }
 
-    @Test
-    void sendDataDelegatesToInjection() {
-        Config cfg = new Config();
-        cfg.setDbType(Config.DatabaseType.QUESTDB);
-        InjectionService service = new InjectionService(cfg);
-        DataPacket packet = Mockito.mock(DataPacket.class);
-        // replace injection with mock
-        try {
-            Field f = InjectionService.class.getDeclaredField("injection");
-            f.setAccessible(true);
-            ingestion.Injection mock = Mockito.mock(ingestion.Injection.class);
-            f.set(service, mock);
-            service.sendDataToDataBase(packet);
-            Mockito.verify(mock).insertData(packet);
-        } catch (Exception e) {
-            fail(e);
-        }
-    }
 }

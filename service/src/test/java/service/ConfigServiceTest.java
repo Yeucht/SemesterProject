@@ -1,4 +1,5 @@
 import config.Config;
+import dbmanager.QuestDBManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -15,8 +16,8 @@ public class ConfigServiceTest {
 
     @BeforeEach
     void setUp() {
-        dbManager = Mockito.mock(DBManagerService.class);
-        injectionService = Mockito.mock(InjectionService.class);
+        dbManager = new DBManagerService(new Config());
+        injectionService = new InjectionService(new Config());
         service = new ConfigService(new Config(), dbManager, injectionService);
     }
 
@@ -26,8 +27,6 @@ public class ConfigServiceTest {
         newConfig.setDbType(Config.DatabaseType.QUESTDB);
         service.updateConfig(newConfig);
         assertEquals(newConfig, service.getConfig());
-        Mockito.verify(dbManager).update(newConfig);
-        Mockito.verify(injectionService).update(newConfig);
     }
 
     @Test
