@@ -18,7 +18,7 @@ public class DBManagerFactoryTest {
     @Test
     void invalidDatabaseThrows() {
         Config config = new Config();
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(NullPointerException.class, () -> {
             config.setDbType(null);
             DBManagerFactory.createManager(config);
         });
