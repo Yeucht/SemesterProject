@@ -10,13 +10,15 @@ public class Config {
     private DatabaseType dbType = DatabaseType.QUESTDB;
     private boolean clearTablesFlag = false;
     private long retentionWindowMillis = 1000000000;
-    private int rate = 3;
+    private float rate = 3.0f;
     private float rateRandomess = 0.8f;
     private String url = "http://sp-service:8080/api/injection/data";
     private int nbrSmartMeters = 5000;
     private boolean batch = false;
     private int batchSize = 10;
     private float batchRandomness = 0.2f;
+    private boolean mdmsBatch = false;
+    private int mdmsBatchSize = 10;
 
     public Config() {}
 
@@ -30,7 +32,9 @@ public class Config {
             int nbrSmartMeters,
             boolean batch,
             int batchSize,
-            float batchRandomness
+            float batchRandomness,
+            boolean mdmsBatch,
+            int mdmsBatchSize
     ) {
         this.dbType = dbType;
         this.clearTablesFlag = clearOnStart;
@@ -42,6 +46,8 @@ public class Config {
         this.batch = batch;
         this.batchSize = batchSize;
         this.batchRandomness = batchRandomness;
+        this.mdmsBatch = mdmsBatch;
+        this.mdmsBatchSize = mdmsBatchSize;
     }
 
     public DatabaseType getDbType() {
@@ -68,11 +74,11 @@ public class Config {
         this.retentionWindowMillis = retentionWindowMillis;
     }
 
-    public int getRate() {
+    public float getRate() {
         return rate;
     }
 
-    public void setRate(int rate) {
+    public void setRate(float rate) {
         this.rate = rate;
     }
 
@@ -123,4 +129,21 @@ public class Config {
     public void setBatchRandomness(float batchRandomness) {
         this.batchRandomness = batchRandomness;
     }
+
+    public void setMdmsBatch(boolean mdmsBatch) {
+        this.mdmsBatch = mdmsBatch;
+    }
+
+    public boolean getMdmsBatch() {
+        return mdmsBatch;
+    }
+
+    public void setMdmsBatchSize(int mdmsBatchSize) {
+        this.mdmsBatchSize = mdmsBatchSize;
+    }
+
+    public int getMdmsBatchSize() {
+        return mdmsBatchSize;
+    }
+
 }

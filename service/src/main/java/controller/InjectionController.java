@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import service.InjectionService;
 
+@CrossOrigin(origins = "http://localhost:7000")
 @RestController
 @RequestMapping("/injection")
 public class InjectionController {

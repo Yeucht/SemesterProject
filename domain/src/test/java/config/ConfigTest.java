@@ -31,7 +31,9 @@ public class ConfigTest {
                 1,
                 true,
                 2,
-                0.1f
+                0.1f,
+                true,
+                10
         );
 
         assertEquals(Config.DatabaseType.IOTDB, config.getDbType());
@@ -44,6 +46,8 @@ public class ConfigTest {
         assertTrue(config.isBatch());
         assertEquals(2, config.getBatchSize());
         assertEquals(0.1f, config.getBatchRandomness());
+        assertEquals(true, config.getMdmsBatch());
+        assertEquals(10, config.getMdmsBatchSize());
 
         config.setDbType(Config.DatabaseType.QUESTDB);
         config.setClearTablesFlag(false);
@@ -55,6 +59,8 @@ public class ConfigTest {
         config.setBatch(false);
         config.setBatchSize(3);
         config.setBatchRandomness(0.2f);
+        config.setMdmsBatch(false);
+        config.setMdmsBatchSize(20);
 
         assertEquals(Config.DatabaseType.QUESTDB, config.getDbType());
         assertFalse(config.getClearTablesFlag());
@@ -66,5 +72,7 @@ public class ConfigTest {
         assertFalse(config.isBatch());
         assertEquals(3, config.getBatchSize());
         assertEquals(0.2f, config.getBatchRandomness());
+        assertEquals(false, config.getMdmsBatch());
+        assertEquals(20, config.getMdmsBatchSize());
     }
 }
