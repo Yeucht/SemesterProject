@@ -1,8 +1,7 @@
 package controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import config.Config;
-import org.springframework.beans.factory.annotation.Autowired;
+import config.SimulationConfig;
 import org.springframework.web.bind.annotation.*;
 import service.ConfigService;
 
@@ -26,13 +25,13 @@ public class ConfigController {
 
     // Get the current configuration
     @GetMapping
-    public Config getConfig() {
+    public SimulationConfig getConfig() {
         return configService.getConfig();
     }
 
     // Set the configuration using POST (can be considered as a default/initial configuration)
     @PostMapping
-    public void createConfig(@RequestBody Config newConfig) throws IOException {
+    public void createConfig(@RequestBody SimulationConfig newConfig) throws IOException {
         try {
             System.out.println("Received config: " + newConfig);
             configService.updateConfig(newConfig);
@@ -71,7 +70,7 @@ public class ConfigController {
     }
 
     @PutMapping
-    public void updateConfig(@RequestBody Config newConfig) throws IOException {
+    public void updateConfig(@RequestBody SimulationConfig newConfig) throws IOException {
         try {
             System.out.println("Received config: " + newConfig);
             configService.updateConfig(newConfig);

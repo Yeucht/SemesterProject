@@ -1,6 +1,6 @@
 package ingestion;
 
-import config.Config;
+import config.SimulationConfig;
 import dbmanager.IoTDBManager;
 import org.apache.iotdb.rpc.StatementExecutionException;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
@@ -19,7 +19,7 @@ public class IoTDBInjection extends Injection {
     private static final String STORAGE_GROUP = "root.smart_meter";
     private final IoTDBManager dbManager;
 
-    public IoTDBInjection(Config config) {
+    public IoTDBInjection(SimulationConfig config) {
         super(config);
         this.dbManager = new IoTDBManager(config);
     }

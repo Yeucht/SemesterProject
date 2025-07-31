@@ -1,6 +1,6 @@
 package dbmanager;
 
-import config.Config;
+import config.SimulationConfig;
 import org.influxdb.InfluxDB;
 import org.influxdb.InfluxDBFactory;
 import org.influxdb.dto.Query;
@@ -13,7 +13,7 @@ public class InfluxDBManager extends DBManager {
 
     private InfluxDB influxDB;
 
-    public InfluxDBManager(Config config) {
+    public InfluxDBManager(SimulationConfig config) {
         super(config);
         this.influxDB = InfluxDBFactory.connect(URL, USER, PASSWORD);
     }

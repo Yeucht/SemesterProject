@@ -1,7 +1,6 @@
 package ingestion;
 
-import config.Config;
-import dbmanager.DBManager;
+import config.SimulationConfig;
 import dbmanager.QuestDBManager;
 import io.questdb.client.Sender;
 import java.util.List;
@@ -11,7 +10,7 @@ public class QuestDBInjection extends Injection {
     private static final String TABLE_NAME = "smart_meter";
     private QuestDBManager questDBManager;
 
-    public QuestDBInjection(Config config) {
+    public QuestDBInjection(SimulationConfig config) {
         super(config);
         this.questDBManager = new QuestDBManager(config);
     }

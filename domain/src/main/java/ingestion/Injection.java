@@ -1,16 +1,12 @@
 package ingestion;
 
-import config.Config;
-import io.questdb.client.Sender;
-
-import java.time.Instant;
-import java.util.Random;
+import config.SimulationConfig;
 
 
 public abstract class Injection {
-    protected Config config = new Config();
+    protected SimulationConfig config = new SimulationConfig();
 
-    Injection(Config config){
+    Injection(SimulationConfig config){
         this.config = config;
     }
 

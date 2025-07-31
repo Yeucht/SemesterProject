@@ -19,7 +19,7 @@ public class InjectionController {
 
     @PostMapping("/data")
     public ResponseEntity<String> injection(@RequestBody DataPacket data) {
-        System.out.println("Received data from Flask:");
+        System.out.println("Received data from Flask: coucou");
         System.out.println(data);
 
         injectionService.sendDataToDataBase(data);

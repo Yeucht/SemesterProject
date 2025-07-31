@@ -1,13 +1,24 @@
 package config;
 
-public class Config {
+import jakarta.persistence.*;
+
+@Entity
+public class SimulationConfig {
+
     public enum DatabaseType {
         IOTDB,
         INFLUXDB,
         QUESTDB
     }
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private long id;
+
+
+    @Enumerated(EnumType.STRING)
     private DatabaseType dbType = DatabaseType.QUESTDB;
+
     private boolean clearTablesFlag = false;
     private long retentionWindowMillis = 1000000000;
     private float rate = 3.0f;
@@ -20,9 +31,9 @@ public class Config {
     private boolean mdmsBatch = false;
     private int mdmsBatchSize = 10;
 
-    public Config() {}
+    public SimulationConfig() {}
 
-    public Config(
+    public SimulationConfig(
             DatabaseType dbType,
             boolean clearOnStart,
             long retentionWindowMillis,

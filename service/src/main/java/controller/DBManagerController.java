@@ -1,10 +1,7 @@
 package controller;
 
-import config.Config;
-import dbmanager.DBManager;
-import org.springframework.beans.factory.annotation.Autowired;
+import config.SimulationConfig;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import service.DBManagerService;
 
@@ -29,7 +26,7 @@ public class DBManagerController {
     }
 
     @GetMapping("/config")
-    Config getConfig(){
+    SimulationConfig getConfig(){
         return dbManagerService.getConfig();
     }
 }

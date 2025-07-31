@@ -1,12 +1,6 @@
 package ingestion;
 
-import com.influxdb.client.InfluxDBClient;
-import com.influxdb.client.InfluxDBClientFactory;
-import com.influxdb.client.domain.WritePrecision;
-import com.influxdb.client.write.Point;
-import config.Config;
-
-import java.time.Instant;
+import config.SimulationConfig;
 
 public class InfluxDBInjection extends Injection {
     private static final String INFLUX_URL = "http://localhost:8086";
@@ -14,7 +8,7 @@ public class InfluxDBInjection extends Injection {
     private static final String ORG = "UNIL";
     private static final String BUCKET = "smart_meters";
 
-    public InfluxDBInjection(Config config){
+    public InfluxDBInjection(SimulationConfig config){
         super(config);
     }
 

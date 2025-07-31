@@ -1,6 +1,6 @@
 package dbmanager;
 
-import config.Config;
+import config.SimulationConfig;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
 import org.apache.iotdb.session.pool.SessionPool;
@@ -18,7 +18,7 @@ public class IoTDBManager extends DBManager {
     private final SessionPool sessionPool;
     private static final String STORAGE_GROUP = "root.smart_meter";
 
-    public IoTDBManager(Config config) {
+    public IoTDBManager(SimulationConfig config) {
         super(config);
         this.host = System.getenv().getOrDefault("IOTDB_HOST", "iotdb");
         this.port = Integer.parseInt(

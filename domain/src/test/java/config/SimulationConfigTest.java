@@ -1,13 +1,13 @@
-import config.Config;
+import config.SimulationConfig;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class ConfigTest {
+public class SimulationConfigTest {
     @Test
     void defaultValuesAreCorrect() {
-        Config config = new Config();
-        assertEquals(Config.DatabaseType.QUESTDB, config.getDbType());
+        SimulationConfig config = new SimulationConfig();
+        assertEquals(SimulationConfig.DatabaseType.QUESTDB, config.getDbType());
         assertFalse(config.getClearTablesFlag());
         assertEquals(1000000000L, config.getRetentionWindowMillis());
         assertEquals(3, config.getRate());
@@ -21,8 +21,8 @@ public class ConfigTest {
 
     @Test
     void parameterizedConstructorAndSetters() {
-        Config config = new Config(
-                Config.DatabaseType.IOTDB,
+        SimulationConfig config = new SimulationConfig(
+                SimulationConfig.DatabaseType.IOTDB,
                 true,
                 42L,
                 7,
@@ -36,7 +36,7 @@ public class ConfigTest {
                 10
         );
 
-        assertEquals(Config.DatabaseType.IOTDB, config.getDbType());
+        assertEquals(SimulationConfig.DatabaseType.IOTDB, config.getDbType());
         assertTrue(config.getClearTablesFlag());
         assertEquals(42L, config.getRetentionWindowMillis());
         assertEquals(7, config.getRate());
@@ -49,7 +49,7 @@ public class ConfigTest {
         assertEquals(true, config.getMdmsBatch());
         assertEquals(10, config.getMdmsBatchSize());
 
-        config.setDbType(Config.DatabaseType.QUESTDB);
+        config.setDbType(SimulationConfig.DatabaseType.QUESTDB);
         config.setClearTablesFlag(false);
         config.setRetentionWindowMillis(100L);
         config.setRate(8);
@@ -62,7 +62,7 @@ public class ConfigTest {
         config.setMdmsBatch(false);
         config.setMdmsBatchSize(20);
 
-        assertEquals(Config.DatabaseType.QUESTDB, config.getDbType());
+        assertEquals(SimulationConfig.DatabaseType.QUESTDB, config.getDbType());
         assertFalse(config.getClearTablesFlag());
         assertEquals(100L, config.getRetentionWindowMillis());
         assertEquals(8, config.getRate());
