@@ -1,12 +1,12 @@
 package dbmanager;
 
-import config.Config;
+import config.SimulationConfig;
 
 public abstract class DBManager {
-    protected Config config = new Config();
+    protected SimulationConfig config = new SimulationConfig();
 
 
-    public DBManager(Config config) {
+    public DBManager(SimulationConfig config) {
         this.config = config;
     }
 
@@ -15,7 +15,7 @@ public abstract class DBManager {
 
     public abstract boolean clearTables();
 
-    public Config getConfig() {
+    public SimulationConfig getConfig() {
         return config;
     }
 }

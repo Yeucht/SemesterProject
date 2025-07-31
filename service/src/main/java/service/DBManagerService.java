@@ -1,21 +1,17 @@
 package service;
 
-import config.Config;
+import config.SimulationConfig;
 import dbmanager.DBManager;
-import dbmanager.QuestDBManager;
 import factories.DBManagerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 
 public class DBManagerService {
 
-    private Config config;
+    private SimulationConfig config;
     private DBManagerFactory dbManagerFactory = new DBManagerFactory();
     private DBManager dbManager;
 
-    public DBManagerService(Config config) {
+    public DBManagerService(SimulationConfig config) {
         this.config = config;
         this.dbManager = dbManagerFactory.createManager(config);
     }
@@ -28,12 +24,12 @@ public class DBManagerService {
             return dbManager;
     }
 
-    public void update(Config config) {
+    public void update(SimulationConfig config) {
         this.config = config;
         this.dbManager = dbManagerFactory.createManager(config);
     }
 
-    public Config getConfig() {
+    public SimulationConfig getConfig() {
         return config;
     }
 }

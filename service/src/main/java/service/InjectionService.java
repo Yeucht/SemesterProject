@@ -1,21 +1,18 @@
 package service;
 
-import config.Config;
+import config.SimulationConfig;
 import ingestion.DataPacket;
 import ingestion.Injection;
 import factories.InjectionFactory;
-import ingestion.IoTDBInjection;
-import ingestion.QuestDBInjection;
-import org.springframework.stereotype.Service;
 
 
 public class InjectionService {
 
-    private Config config;
+    private SimulationConfig config;
     private final InjectionFactory injectionFactory = new InjectionFactory();
     private Injection injection;
 
-    public InjectionService(Config config) {
+    public InjectionService(SimulationConfig config) {
         this.config = config;
         this.injection = injectionFactory.createInjection(config);
     }
@@ -29,7 +26,7 @@ public class InjectionService {
         }
     }
 
-    public void update(Config config){
+    public void update(SimulationConfig config){
         this.config = config;
         this.injection = injectionFactory.createInjection(config);
     }

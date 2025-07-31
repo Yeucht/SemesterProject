@@ -1,6 +1,6 @@
 package dbmanager;
 
-import config.Config;
+import config.SimulationConfig;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -16,7 +16,7 @@ public class QuestDBManager extends DBManager {
     private final String user;
     private final String password;
 
-    public QuestDBManager(Config config) {
+    public QuestDBManager(SimulationConfig config) {
         super(config);
         this.url = System.getenv().getOrDefault(
                 "QUESTDB_URL",

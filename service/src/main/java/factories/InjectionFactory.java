@@ -1,18 +1,14 @@
 package factories;
 
-import config.Config;
-import dbmanager.DBManager;
-import dbmanager.IoTDBManager;
-import dbmanager.QuestDBManager;
+import config.SimulationConfig;
 import ingestion.Injection;
 import ingestion.IoTDBInjection;
 import ingestion.QuestDBInjection;
-import org.springframework.stereotype.Component;
 
 
 public class InjectionFactory {
 
-    public Injection createInjection(Config config) {
+    public Injection createInjection(SimulationConfig config) {
         switch (config.getDbType()) {
             case QUESTDB:
                 return new QuestDBInjection(config);
