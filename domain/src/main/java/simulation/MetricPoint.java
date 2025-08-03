@@ -8,7 +8,7 @@ import java.time.Instant;
 public class MetricPoint {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private Instant timestamp;

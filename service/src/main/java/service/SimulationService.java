@@ -25,7 +25,7 @@ public class SimulationService {
      * Starts the external simulation by invoking the Flask '/start' endpoint.
      */
     public int startSimulation() throws Exception {
-        //metricsService.startSimulation();
+        metricsService.startRecording();
         String target = FLASK_BASE_URL + "/start";
         URL url = new URL(target);
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -50,7 +50,6 @@ public class SimulationService {
      */
     @Transactional
     public int stopSimulation() throws Exception {
-        //metricsService.stopSimulation();
         String target = FLASK_BASE_URL + "/stop";
         URL url = new URL(target);
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -66,6 +65,7 @@ public class SimulationService {
             }
         }
         con.disconnect();
+        metricsService.stopRecording();
         return responseCode;
     }
 }

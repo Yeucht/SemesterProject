@@ -16,20 +16,16 @@ public class ConfigService {
 
     public ConfigService() {}
 
-    // Get the current configuration
     public SimulationConfig getConfig() {
         return config;
     }
 
-
-    // Update the current configuration (full replace), used via PUT
     public void updateConfig(SimulationConfig newConfig) {
         this.config = newConfig;
         dbManagerService.update(newConfig);
         injectionService.update(newConfig);
     }
 
-    // Reset configuration to default values
     public void resetConfigToDefault() {
         this.config = new SimulationConfig();
     }

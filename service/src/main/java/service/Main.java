@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import dbmanager.*;
 
-@SpringBootApplication(scanBasePackages = {"service", "controller", "factories", "infrastructure", "simulation"})
-@EnableJpaRepositories(basePackages = "simulation")
+@SpringBootApplication(scanBasePackages = {"service", "controller", "factories", "infrastructure", "simulation", "config"})
+@EnableJpaRepositories(basePackages = {"simulation", "config"})
 @EntityScan(basePackages = {"simulation", "config"})
 @EnableScheduling
 @RestController
