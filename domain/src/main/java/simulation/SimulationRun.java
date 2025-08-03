@@ -11,10 +11,10 @@ import java.util.List;
 public class SimulationRun {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.ALL)
     private SimulationConfig config;
 
     private Instant startedAt;
@@ -76,7 +76,7 @@ public class SimulationRun {
     }
 
     public long getTotalInserted() {
-        return totalInserted;
+        return metrics.size();
     }
 
     public void setTotalInserted(long totalInserted) {

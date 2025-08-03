@@ -1,28 +1,29 @@
 package controller;
 
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import service.ConfigService;
 import service.MetricsService;
+import simulation.MetricPoint;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 
 @RestController
+@RequestMapping("/metrics")
 public class MetricsController {
 
-    public MetricsService metricsService;
-    public ConfigService configService;
+    private final MetricsService metricsService;
 
-    private final MetricsService cpuUsageService;
-
-    public MetricsController(MetricsService cpuUsageService) {
-        this.cpuUsageService = cpuUsageService;
+    public MetricsController(MetricsService metricsService) {
+        this.metricsService = metricsService;
     }
 
-    @GetMapping("/cpu-usage")
-    public double getCpuUsage() {
-        return cpuUsageService.getProcessCpuLoad();
+    // → Vue.js va appeler ça régulièrement (ex: chaque seconde)
+    @GetMapping("/live")
+    public MetricPoint getLiveMetrics() {
+        return metricsService.getLastMetricPoint();
     }
-
 }

@@ -157,4 +157,9 @@ public class SimulationConfig {
         return mdmsBatchSize;
     }
 
+    public Long getId() {
+        return id;
+    }
+
+
 }

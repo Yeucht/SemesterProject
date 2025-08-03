@@ -1,8 +1,10 @@
 package infrastructure;
 
+import config.ConfigRepository;
 import config.SimulationConfig;
 import controller.PopulateController;
 import io.micrometer.core.instrument.MeterRegistry;
+import jakarta.persistence.EntityManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -52,10 +54,9 @@ public class DomainConfig {
     @Bean
     public MetricsService metricsService(
             SimulationRepository simulationRepository,
-            MetricPointRepository metricPointRepository,
-            PrometheusMetricsFetcher prometheusMetricsFetcher,
-            SimulationConfig config
+            ConfigRepository configRepository,
+            ConfigService configService
     ) {
-        return new MetricsService(simulationRepository, metricPointRepository, prometheusMetricsFetcher, config);
+        return new MetricsService(simulationRepository, configRepository, configService);
     }
 }
