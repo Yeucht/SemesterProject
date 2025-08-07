@@ -2,11 +2,7 @@ package dbmanager;
 
 import config.SimulationConfig;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,6 +11,8 @@ public class QuestDBManager extends DBManager {
     private final String url;
     private final String user;
     private final String password;
+    private static final String TABLE_NAME = "smart_meter";
+    private static final String QUESTDB_URL = "jdbc:postgresql://questdb:8812/qdb";
 
     public QuestDBManager(SimulationConfig config) {
         super(config);
@@ -66,5 +64,24 @@ public class QuestDBManager extends DBManager {
             e.printStackTrace();
             return false;
         }
+    }
+
+    @Override
+    public int getRowCount() {
+        int count = 0;
+        String sql = "SELECT count(*) FROM " + TABLE_NAME;
+
+        try (Connection conn = DriverManager.getConnection(QUESTDB_URL, "admin", "quest");
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            if (rs.next()) {
+                count = rs.getInt(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return count;
     }
 }

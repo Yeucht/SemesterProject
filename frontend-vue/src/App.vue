@@ -25,7 +25,7 @@
     </div>
 
     <div v-else-if="currentTab === 'Performances'">
-      <p>Performances tab content (à compléter)</p>
+      <PerformancePage />
     </div>
 
     <div v-else-if="currentTab === 'Dashboards'">
@@ -41,6 +41,8 @@
 <script setup>
 import { ref } from 'vue'
 import SimulationPage from './components/SimulationPage.vue'
+import PerformancePage from './components/PerformancePage.vue'
+
 
 const tabs = ['Simulation', 'Performances', 'Dashboards', 'Query']
 const currentTab = ref('Simulation')

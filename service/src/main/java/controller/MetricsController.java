@@ -22,8 +22,8 @@ public class MetricsController {
     }
 
     // → Vue.js va appeler ça régulièrement (ex: chaque seconde)
-    @GetMapping("/live")
+    /*@GetMapping("/live")
     public MetricPoint getLiveMetrics() {
         return metricsService.getLastMetricPoint();
-    }
+    }*/
 }

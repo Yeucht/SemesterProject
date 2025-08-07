@@ -1,41 +1,66 @@
 package service;
 
-
 import config.ConfigRepository;
 import config.SimulationConfig;
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.MeterRegistry;
+import jakarta.annotation.PostConstruct;
 import org.springframework.scheduling.annotation.Scheduled;
-import simulation.*;
+import org.springframework.stereotype.Service;
+import simulation.MetricPoint;
+import simulation.SimulationRun;
+import simulation.SimulationRepository;
 
 import java.lang.management.ManagementFactory;
 import com.sun.management.OperatingSystemMXBean;
 import java.time.Instant;
 import java.util.*;
 
-
+@Service
 public class MetricsService {
 
     private final SimulationRepository simulationRunRepository;
     private final ConfigRepository configRepository;
-    private ConfigService configService;
-    PrometheusService prometheusService;
+    private final ConfigService configService;
+    private final PrometheusService prometheusService;
+    private final MeterRegistry meterRegistry;
+    private final Counter counter;
 
     private SimulationRun currentRun;
 
-    public MetricsService(SimulationRepository simulationRunRepository, ConfigRepository configRepository, ConfigService configService, PrometheusService prometheusService) {
-        this.simulationRunRepository = simulationRunRepository;
-        this.configRepository = configRepository;
+    private volatile double cpuUsage = 0.0;
+    private volatile long memoryUsed = 0;
+    private volatile long insertedSoFar = 0;
+
+    public MetricsService(SimulationRepository simRepo,
+                          ConfigRepository configRepo,
+                          ConfigService configService,
+                          PrometheusService promService,
+                          MeterRegistry registry,
+                          Counter counter) {
+        this.simulationRunRepository = simRepo;
+        this.configRepository = configRepo;
         this.configService = configService;
-        this.prometheusService = prometheusService;
+        this.prometheusService = promService;
+        this.meterRegistry = registry;
+        this.counter = counter;
+
+        Gauge.builder("spservice_cpu_usage_percent", this, MetricsService::getCpuUsage)
+                .register(registry);
+
+        Gauge.builder("spservice_memory_used_bytes", this, MetricsService::getMemoryUsed)
+                .register(registry);
+
+        Gauge.builder("spservice_inserted_so_far", this, MetricsService::getInsertedSoFar)
+                .register(registry);
     }
 
-    // Démarrer une nouvelle simulation
     public void startRecording() {
         configRepository.save(configService.getConfig());
         this.currentRun = new SimulationRun(this.configService.getConfig());
-        System.out.println("New simulation run started: " + this.currentRun);
+        System.out.println("📈 Simulation started at: " + this.currentRun.getStartedAt());
     }
 
-    // Stopper la simulation et persister en base
     public void stopRecording() {
         if (currentRun == null) return;
 
@@ -46,64 +71,35 @@ public class MetricsService {
         SimulationConfig config = configRepository.findById(configService.getConfig().getId()).orElseThrow();
         currentRun.setConfig(config);
 
-        String containerName = "sp-service";
+        // 🔁 Prometheus-scraped metrics exposées par notre app
+        Map<Instant, Double> cpuSeries = prometheusService.queryTimeSeries("spservice_cpu_usage_percent", start, end);
+        Map<Instant, Double> memSeries = prometheusService.queryTimeSeries("spservice_memory_used_bytes", start, end);
+        Map<Instant, Double> insertSeries = prometheusService.queryTimeSeries("spservice_inserted_so_far", start, end);
 
-        // 🔄 Collecter les séries de Prometheus
-        Map<Instant, Double> cpuSeries = prometheusService.queryTimeSeries(
-                "rate(engine_daemon_container_cpu_usage_seconds_total)", start, end, containerName);
-        Map<Instant, Double> memSeries = prometheusService.queryTimeSeries(
-                "engine_daemon_container_memory_usage_bytes", start, end, containerName);
-        Map<Instant, Double> diskSeries = prometheusService.queryTimeSeries(
-                "engine_daemon_container_fs_usage_bytes", start, end, containerName);
-        Map<Instant, Double> netInSeries = prometheusService.queryTimeSeries(
-                "rate(engine_daemon_container_network_receive_bytes_total)", start, end, containerName);
-        Map<Instant, Double> netOutSeries = prometheusService.queryTimeSeries(
-                "rate(engine_daemon_container_network_transmit_bytes_total)", start, end, containerName);
-
-        // 🧩 Fusionner tous les timestamps (triés)
+        // Fusionner tous les timestamps
         Set<Instant> allTimestamps = new TreeSet<>();
         allTimestamps.addAll(cpuSeries.keySet());
         allTimestamps.addAll(memSeries.keySet());
-        allTimestamps.addAll(diskSeries.keySet());
-        allTimestamps.addAll(netInSeries.keySet());
-        allTimestamps.addAll(netOutSeries.keySet());
-
-        // 📦 Variables pour conserver la dernière valeur connue
-        Double lastCpu = null;
-        Long lastMem = null;
-        Double lastDisk = null;
-        Double lastNetIn = null;
-        Double lastNetOut = null;
+        allTimestamps.addAll(insertSeries.keySet());
 
         List<MetricPoint> points = new ArrayList<>();
+        Double lastCpu = null;
+        Long lastMem = null;
+        Double lastInsert = null;
 
         for (Instant t : allTimestamps) {
             MetricPoint point = new MetricPoint();
             point.setTimestamp(t);
             point.setRun(currentRun);
 
-            // ---- CPU (en %) ----
-            if (cpuSeries.containsKey(t)) lastCpu = cpuSeries.get(t) * 100;
+            if (cpuSeries.containsKey(t)) lastCpu = cpuSeries.get(t);
             point.setCpuUsage(lastCpu != null ? lastCpu : 0.0);
 
-            // ---- RAM ----
             if (memSeries.containsKey(t)) lastMem = memSeries.get(t).longValue();
             point.setMemoryUsed(lastMem != null ? lastMem : 0L);
 
-            // ---- Disque ----
-            if (diskSeries.containsKey(t)) lastDisk = diskSeries.get(t);
-            point.setDiskUsed(lastDisk != null ? lastDisk : 0.0);
-
-            // ---- Réseau IN ----
-            if (netInSeries.containsKey(t)) lastNetIn = netInSeries.get(t);
-            point.setNetIn(lastNetIn != null ? lastNetIn : 0.0);
-
-            // ---- Réseau OUT ----
-            if (netOutSeries.containsKey(t)) lastNetOut = netOutSeries.get(t);
-            point.setNetOut(lastNetOut != null ? lastNetOut : 0.0);
-
-            // ---- Progression de l'injection (ex : 1 point = 1 insert) ----
-            point.setInsertedSoFar(points.size() + 1);
+            if (insertSeries.containsKey(t)) lastInsert = insertSeries.get(t);
+            point.setInsertedSoFar(lastInsert != null ? lastInsert.longValue() : points.size());
 
             points.add(point);
         }
@@ -112,57 +108,39 @@ public class MetricsService {
         currentRun.setTotalInserted(points.size());
 
         simulationRunRepository.save(currentRun);
+        System.out.println("✅ Simulation stored: " + points.size() + " points.");
         currentRun = null;
     }
 
-
-    // Appel automatique toutes les 1s
     @Scheduled(fixedRate = 1000)
     public void collectMetrics() {
-        //System.out.println("Collecting metrics");
         if (currentRun == null) return;
 
-        MetricPoint point = new MetricPoint();
-        point.setTimestamp(Instant.now());
-        point.setCpuUsage(getCpuUsage());
-        point.setMemoryUsed(getMemoryUsed());
-        point.setInsertedSoFar(getInsertedSoFar());
-        point.setRun(currentRun);
+        this.cpuUsage = getCpuUsage();
+        this.memoryUsed = getMemoryUsed();
+        this.insertedSoFar = getInsertedSoFar();
 
-        currentRun.add_point(point);
+        System.out.printf("📊 CPU: %.2f%% | RAM: %d | Inserted: %d\n",
+                cpuUsage, memoryUsed, insertedSoFar);
     }
 
-    public MetricPoint getLastMetricPoint() {
-        if (currentRun == null || currentRun.getMetrics().isEmpty()){
-            System.out.println("No metric found");
-            return null;
-        }
-        List<MetricPoint> list = currentRun.getMetrics();
-        return list.get(list.size() - 1);
-    }
-
-    private double getCpuUsage() {
+    public double getCpuUsage() {
         OperatingSystemMXBean osBean = (OperatingSystemMXBean)
                 ManagementFactory.getOperatingSystemMXBean();
-
         double cpuLoad = osBean.getProcessCpuLoad();
-        // Valeur retournée entre 0.0 et 1.0, ou -1 si non disponible
-        if (cpuLoad < 0) return 0.0;
-        return cpuLoad * 100.0;
+        return cpuLoad < 0 ? 0.0 : cpuLoad * 100.0;
     }
 
-    private long getMemoryUsed() {
-        // Utilisation de mémoire heap
+    public long getMemoryUsed() {
         Runtime runtime = Runtime.getRuntime();
-        long used = runtime.totalMemory() - runtime.freeMemory();
-        return used;
+        return runtime.totalMemory() - runtime.freeMemory();
     }
 
-    private long getInsertedSoFar() {
-        // À adapter selon ton système de comptage réel
-        // Pour l'instant, on peut simplement renvoyer currentRun.getTotalInserted()
-        // ou calculer via currentRun.getMetrics().size() si 1 point = 1 insertion
-        if (currentRun == null) return 0;
-        return currentRun.getTotalInserted(); // ou : currentRun.getMetrics().size();
+    public long getInsertedSoFar() {
+        return counter.getCounter();
+    }
+
+    public void updateInserts(int nbr){
+        currentRun.setTotalInserted(currentRun.getTotalInserted() + nbr);
     }
 }

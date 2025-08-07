@@ -1,0 +1,62 @@
+{
+  "uid": "iot-benchmark-dashboard",
+  "title": "IoT Benchmark Dashboard",
+  "schemaVersion": 37,
+  "refresh": "1s",
+  "time": { "from": "now-5m", "to": "now" },
+  "timepicker": {
+    "time_options": ["5m","15m","1h","6h","24h","7d","30d"]
+  },
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "CPU Usage (%) — history",
+      "id": 4,
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "avg_over_time(spservice_cpu_usage_percent[$__interval])", "refId": "A" }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "percent", "min": 0, "max": 100 },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "single" }
+      },
+      "gridPos": { "x": 0, "y": 14, "w": 12, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Memory Used (bytes) — history",
+      "id": 5,
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "avg_over_time(spservice_memory_used_bytes[$__interval])", "refId": "A" }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "bytes", "min": 0 },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "single" }
+      },
+      "gridPos": { "x": 0, "y": 22, "w": 12, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Inserted Rows Over Time",
+      "id": 3,
+      "datasource": {"type": "prometheus", "uid": "Prometheus"},
+      "targets": [
+        { "expr": "spservice_inserted_so_far", "refId": "A" }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "none" },
+        "overrides": []
+      },
+      "gridPos": { "x": 0, "y": 6, "w": 12, "h": 8 }
+    }
+  ]
+}

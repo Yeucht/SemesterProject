@@ -18,4 +18,6 @@ public abstract class DBManager {
     public SimulationConfig getConfig() {
         return config;
     }
+
+    public abstract int getRowCount();
 }

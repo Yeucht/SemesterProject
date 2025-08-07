@@ -60,4 +60,7 @@ public class IoTDBManager extends DBManager {
         return sessionPool;
     }
 
+    @Override
+    public int getRowCount() { return 1;}
+
 }

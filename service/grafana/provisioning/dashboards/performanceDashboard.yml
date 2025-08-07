@@ -1,0 +1,13 @@
+apiVersion: 1
+
+providers:
+  - name: 'IoT Benchmark'
+    orgId: 1
+    folder: 'IoT'
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /var/lib/grafana/dashboards
+      # recharge auto (optionnel)
+      foldersFromFilesStructure: false

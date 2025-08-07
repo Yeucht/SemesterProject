@@ -15,10 +15,12 @@ public class SimulationService {
 
     private final ConfigService configService;
     private final MetricsService metricsService;
+    private final Counter counter;
 
-    public SimulationService(ConfigService configService, MetricsService metricsService) {
+    public SimulationService(ConfigService configService, MetricsService metricsService, Counter counter) {
         this.configService = configService;
         this.metricsService = metricsService;
+        this.counter = counter;
     }
 
     /**

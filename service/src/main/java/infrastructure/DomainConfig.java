@@ -25,18 +25,18 @@ public class DomainConfig {
     }
 
     @Bean
-    public DBManagerService dbManagerService(SimulationConfig config) {
-        return new DBManagerService(config);
+    public DBManagerService dbManagerService(SimulationConfig config, Counter counter) {
+        return new DBManagerService(config, counter);
     }
 
     @Bean
-    public InjectionService injectionService(SimulationConfig config) {
-        return new InjectionService(config);
+    public InjectionService injectionService(SimulationConfig config, Counter counter) {
+        return new InjectionService(config, counter);
     }
 
     @Bean
-    public SimulationService simulationService(ConfigService configService, MetricsService metricsService) {
-        return new SimulationService(configService, metricsService);
+    public SimulationService simulationService(ConfigService configService, MetricsService metricsService, Counter counter) {
+        return new SimulationService(configService, metricsService, counter);
     }
 
     @Bean
@@ -45,8 +45,8 @@ public class DomainConfig {
     }
 
     @Bean
-    public PrometheusService prometheusService(MeterRegistry meterRegistry, ConfigService configService) {
-        return new PrometheusService(meterRegistry, configService);
+    public PrometheusService prometheusService() {
+        return new PrometheusService();
     }
 
     @Bean
@@ -54,9 +54,16 @@ public class DomainConfig {
             SimulationRepository simulationRepository,
             ConfigRepository configRepository,
             PrometheusService prometheusService,
-            ConfigService configService
+            ConfigService configService,
+            MeterRegistry meterRegistry,
+            Counter counter
     ) {
-        return new MetricsService(simulationRepository, configRepository, configService, prometheusService);
+        return new MetricsService(simulationRepository, configRepository, configService, prometheusService, meterRegistry, counter);
+    }
+
+    @Bean
+    public Counter counter(){
+        return new Counter();
     }
 
 }

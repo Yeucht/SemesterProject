@@ -1,49 +1,34 @@
 package service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import config.SimulationConfig;
-import io.micrometer.core.instrument.Gauge;
-import io.micrometer.core.instrument.MeterRegistry;
-import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+@Service
 public class PrometheusService {
 
+    @Value("${prometheus.url}")
+    private String prometheusBaseUrl;
+
     private final RestTemplate restTemplate = new RestTemplate();
-    private final String PROMETHEUS_URL = "http://prometheus:9090/api/v1/";
-    private final ConfigService configService;
 
-    private final MeterRegistry meterRegistry;
-
-    private volatile double cpuUsagePercent = 0.0;
-    private volatile long memoryUsageBytes = 0;
-
-    public PrometheusService(MeterRegistry meterRegistry, ConfigService configService) {
-        this.meterRegistry = meterRegistry;
-        this.configService = configService;
-    }
-
-
-    public Map<Instant, Double> queryTimeSeries(String metric, Instant start, Instant end, String container) {
-        String promQLRaw = String.format("rate(%s{container=\"%s\"}[1s])", metric, container);
-        String encodedQuery = URLEncoder.encode(promQLRaw, StandardCharsets.UTF_8);
-        String url = PROMETHEUS_URL  + "query_range?query=" + promQLRaw +
-                "&start=" + start.getEpochSecond() +
-                "&end=" + end.getEpochSecond() +
-                "&step=1s";
-
+    public Map<Instant, Double> queryTimeSeries(String metricName, Instant start, Instant end) {
+        String url = String.format(
+                "%s/api/v1/query_range?query=%s&start=%s&end=%s&step=1s",
+                prometheusBaseUrl,
+                URLEncoder.encode(metricName, StandardCharsets.UTF_8),
+                start.toString(),
+                end.toString()
+        );
 
         ResponseEntity<JsonNode> response = restTemplate.getForEntity(url, JsonNode.class);
-
         Map<Instant, Double> series = new HashMap<>();
 
         if (response.getStatusCode().is2xxSuccessful()) {
@@ -60,5 +45,4 @@ public class PrometheusService {
 
         return series;
     }
-
 }
