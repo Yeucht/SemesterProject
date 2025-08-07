@@ -15,12 +15,29 @@ public class MetricPoint {
     private long insertedSoFar;
     private double cpuUsage;
     private long memoryUsed;
+    private double diskUsed;
+    private double netIn;
+    private double netOut;
 
     @ManyToOne
     @JoinColumn
     private SimulationRun run;
 
     // Getters & Setters
+
+    public double getDiskUsed(){
+        return diskUsed;
+    }
+
+    public double getNetIn(){ return netIn; }
+
+    public double getNetOut(){ return netOut; }
+
+    public void setDiskUsed(double diskUsage){ this.diskUsed = diskUsage; }
+
+    public void setNetIn(double netIn){ this.netIn = netIn; }
+
+    public void setNetOut(double netOut){ this.netOut = netOut; }
 
     public Long getId() {
         return id;

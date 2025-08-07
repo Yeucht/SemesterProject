@@ -4,12 +4,10 @@ import config.ConfigRepository;
 import config.SimulationConfig;
 import controller.PopulateController;
 import io.micrometer.core.instrument.MeterRegistry;
-import jakarta.persistence.EntityManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import service.*;
-import simulation.MetricPointRepository;
 import simulation.SimulationRepository;
 
 @Configuration
@@ -47,16 +45,18 @@ public class DomainConfig {
     }
 
     @Bean
-    public PrometheusMetricsFetcher prometheusMetricsFetcher(MeterRegistry meterRegistry) {
-        return new PrometheusMetricsFetcher(meterRegistry);
+    public PrometheusService prometheusService(MeterRegistry meterRegistry, ConfigService configService) {
+        return new PrometheusService(meterRegistry, configService);
     }
 
     @Bean
     public MetricsService metricsService(
             SimulationRepository simulationRepository,
             ConfigRepository configRepository,
+            PrometheusService prometheusService,
             ConfigService configService
     ) {
-        return new MetricsService(simulationRepository, configRepository, configService);
+        return new MetricsService(simulationRepository, configRepository, configService, prometheusService);
     }
+
 }
