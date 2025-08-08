@@ -4,10 +4,6 @@ import config.SimulationConfig;
 import dbmanager.QuestDBManager;
 import io.questdb.client.Sender;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.util.List;
 
 public class QuestDBInjection extends Injection {
@@ -25,9 +21,9 @@ public class QuestDBInjection extends Injection {
     // New method to insert real DataPacket received from controller
     public void insertData(DataPacket packet) {
         try (Sender sender = Sender.fromConfig("tcp::addr=questdb:9009")) {
-            List<MeterData> meterDataList = packet.getMeteringData();
+            List<MeterData> meterDataList = packet.getMeterData();
 
-            for (MeterData data : packet.getMeteringData()) {
+            for (MeterData data : packet.getMeterData()) {
                 for (int payload : data.getPayload()) {
                     sender
                             .table(TABLE_NAME)

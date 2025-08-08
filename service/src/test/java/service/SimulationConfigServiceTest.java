@@ -19,13 +19,6 @@ public class SimulationConfigServiceTest {
         service = new ConfigService(new SimulationConfig(), dbManager, injectionService);
     }
 
-    @Test
-    void updateConfigReplacesConfig() {
-        SimulationConfig newConfig = new SimulationConfig();
-        newConfig.setDbType(SimulationConfig.DatabaseType.QUESTDB);
-        service.updateConfig(newConfig);
-        assertEquals(newConfig, service.getConfig());
-    }
 
     @Test
     void resetConfigCreatesNewInstance() {

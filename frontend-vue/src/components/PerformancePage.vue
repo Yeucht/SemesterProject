@@ -1,45 +1,64 @@
-
-
 <template>
   <div class="performance-page">
     <h2>System Performance</h2>
 
-    <div class="grafana-panels">
+    <div class="grafana-grid">
       <iframe
-          src="http://localhost:3000/d/iot-benchmark-dashboard/iot-benchmark?orgId=1&kiosk&refresh=1s"
-          width="100%"
-          height="900"
+          v-for="panel in grafanaPanels"
+          :key="panel.id + '-' + refreshTs"
+          :src="panelUrl(panel.id)"
+          class="panel-frame"
+          loading="lazy"
           frameborder="0"
+          allow="fullscreen"
       ></iframe>
     </div>
   </div>
 </template>
 
 <script setup>
-const grafanaBaseUrl = 'http://localhost:3000'; // ou l'URL Grafana de ton setup
-const dashboardUid = 'iot-benchmark-dashboard'; // trouvé dans l'URL de ton dashboard Grafana
-const grafanaPanels = [
-  { id: 1, title: 'CPU Usage (%)' },
-  { id: 2, title: 'Memory Used (bytes)' },
-  { id: 3, title: 'Total Inserted Rows' }
-];
+import { ref } from 'vue'
 
-function generatePanelUrl(panelId) {
-  return `${grafanaBaseUrl}/d-solo/${dashboardUid}/iot-performance?orgId=1&panelId=${panelId}&refresh=5s`;
+const grafanaBase = 'http://localhost:3000'
+const dashboardUid = 'iot-benchmark-dashboard'
+const grafanaPanels = [
+  { id: 3, title: 'Inserts History' },
+  { id: 4, title: 'CPU History' },
+  { id: 5, title: 'RAM History' }
+]
+const refreshTs = ref(Date.now())
+
+function panelUrl(panelId) {
+  // solo panel, fenêtre 5 min par défaut
+  return `${grafanaBase}/d-solo/${dashboardUid}/iot-benchmark?orgId=1&panelId=${panelId}&from=now-5m&to=now&refresh=1s&_=${refreshTs.value}`
 }
 </script>
 
 <style scoped>
-.performance-page {
-  padding: 1rem;
-}
-.grafana-panels {
+.performance-page { max-width: 1600px; }
+
+.grafana-grid {
   display: grid;
   gap: 1rem;
+  grid-template-columns: 1fr;
 }
-</style>
 
+@media (min-width: 1100px) {
+  .grafana-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
 
-<style scoped>
+.panel-frame {
+  width: 100%;
+  height: 340px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
 
+  /* anti “ne répond pas” : s’assure que l’iframe est au-dessus et cliquable */
+  position: relative;
+  z-index: 1;
+  pointer-events: auto;
+}
 </style>

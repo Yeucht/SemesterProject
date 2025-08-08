@@ -35,8 +35,8 @@ public class DomainConfig {
     }
 
     @Bean
-    public SimulationService simulationService(ConfigService configService, MetricsService metricsService, Counter counter) {
-        return new SimulationService(configService, metricsService, counter);
+    public SimulationService simulationService(ConfigService configService, MetricsService metricsService, Counter counter, DBManagerService dbManagerService) {
+        return new SimulationService(configService, metricsService, counter, dbManagerService);
     }
 
     @Bean

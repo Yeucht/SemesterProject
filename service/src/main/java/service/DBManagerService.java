@@ -46,6 +46,8 @@ public class DBManagerService {
         counter.setCounter(i);
     }
 
+    public void updateCounter(){this.counter.updateCounter(dbManager.getRowCount());}
+
     @PostConstruct
     public void init() {
         counter.updateCounter(dbManager.getRowCount());

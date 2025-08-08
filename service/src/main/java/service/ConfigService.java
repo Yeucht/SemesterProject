@@ -24,6 +24,7 @@ public class ConfigService {
         this.config = newConfig;
         dbManagerService.update(newConfig);
         injectionService.update(newConfig);
+        dbManagerService.updateCounter();
     }
 
     public void resetConfigToDefault() {

@@ -71,7 +71,7 @@ public class IoTDBInjection extends Injection {
         );
 
         try {
-            for (MeterData data : packet.getMeteringData()) {
+            for (MeterData data : packet.getMeterData()) {
                 for (Integer payloadValue : data.getPayload()) {
                     List<Object> values = Arrays.asList(
                             packet.getAuthUser(),

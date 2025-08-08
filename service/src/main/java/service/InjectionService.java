@@ -27,7 +27,7 @@ public class InjectionService {
     public void sendDataToDataBase(DataPacket data){
         try {
             injection.insertData(data);
-            counter.updateCounter(data.getMeteringData().size());
+            counter.updateCounter(data.getMeterData().get(0).getPayload().size());
         } catch (Exception e) {
             e.printStackTrace();
         }

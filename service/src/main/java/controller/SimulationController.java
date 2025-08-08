@@ -37,4 +37,14 @@ public class SimulationController {
             return ResponseEntity.status(500).body("Error stopping simulation: " + e.getMessage());
         }
     }
+
+    @GetMapping("/running")
+    public ResponseEntity<String> getRunningSimulation() {
+        try {
+            boolean running = simulationService.isRunning();
+            return ResponseEntity.ok("running: " + running);
+        }catch (Exception e) {
+            return ResponseEntity.status(500).body("Error getting bool ruuning: " + e.getMessage());
+        }
+    }
 }

@@ -5,6 +5,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import dbmanager.DBManager;
 import jakarta.transaction.Transactional;
 import simulation.*;
 
@@ -16,11 +17,14 @@ public class SimulationService {
     private final ConfigService configService;
     private final MetricsService metricsService;
     private final Counter counter;
+    private final DBManagerService dbManagerService;
+    private boolean running = false;
 
-    public SimulationService(ConfigService configService, MetricsService metricsService, Counter counter) {
+    public SimulationService(ConfigService configService, MetricsService metricsService, Counter counter, DBManagerService dbManager) {
         this.configService = configService;
         this.metricsService = metricsService;
         this.counter = counter;
+        this.dbManagerService = dbManager;
     }
 
     /**
@@ -28,6 +32,10 @@ public class SimulationService {
      */
     public int startSimulation() throws Exception {
         metricsService.startRecording();
+        if (configService.getConfig().getClearTablesFlag()){
+            dbManagerService.clearTables();
+        }
+        dbManagerService.updateCounter();
         String target = FLASK_BASE_URL + "/start";
         URL url = new URL(target);
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -44,6 +52,9 @@ public class SimulationService {
             }
         }
         con.disconnect();
+        if (responseCode == 200) {
+            running = true;
+        }
         return responseCode;
     }
 
@@ -66,8 +77,15 @@ public class SimulationService {
                 System.out.println(line);
             }
         }
+        if (responseCode == 200) {
+            running = false;
+        }
         con.disconnect();
         metricsService.stopRecording();
         return responseCode;
+    }
+
+    public boolean isRunning() {
+        return running;
     }
 }

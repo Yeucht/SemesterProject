@@ -39,7 +39,7 @@ public class DataPacketTest {
         assertEquals("mun", p.getMasterUnitNumber());
         assertEquals("owner", p.getMasterUnitOwnerId());
         assertEquals("type", p.getMasterUnitType());
-        assertSame(list, p.getMeteringData());
+        assertSame(list, p.getMeterData());
     }
 
     @Test
@@ -57,7 +57,7 @@ public class DataPacketTest {
         p.setMasterUnitNumber("mu");
         p.setMasterUnitOwnerId("mo");
         p.setMasterUnitType("mt");
-        p.setMeteringData(Collections.emptyList());
+        p.setMeterData(Collections.emptyList());
 
         assertEquals("u", p.getAuthUser());
         assertEquals("s", p.getAuthSerialNumber());
@@ -71,6 +71,6 @@ public class DataPacketTest {
         assertEquals("mu", p.getMasterUnitNumber());
         assertEquals("mo", p.getMasterUnitOwnerId());
         assertEquals("mt", p.getMasterUnitType());
-        assertNotNull(p.getMeteringData());
+        assertNotNull(p.getMeterData());
     }
 }
