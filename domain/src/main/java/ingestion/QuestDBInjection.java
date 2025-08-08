@@ -21,10 +21,8 @@ public class QuestDBInjection extends Injection {
     // New method to insert real DataPacket received from controller
     public void insertData(DataPacket packet) {
         try (Sender sender = Sender.fromConfig("tcp::addr=questdb:9009")) {
-            List<MeterData> meterDataList = packet.getMeterData();
-
-            for (MeterData data : packet.getMeterData()) {
-                for (int payload : data.getPayload()) {
+            MeterData data = packet.getMeterData();
+            for (double i : data.getPayload()) {
                     sender
                             .table(TABLE_NAME)
                             .symbol("auth_user",       packet.getAuthUser())
@@ -45,11 +43,10 @@ public class QuestDBInjection extends Injection {
                             .longColumn("sequence", data.getSequence())
                             .longColumn("status", data.getStatus())
                             .longColumn("version", data.getVersion())
-                            .doubleColumn("payload", payload)
+                            .doubleColumn("payload", i)
 
                             // 3) On termine la ligne
                             .atNow();
-                }
             }
             sender.flush();
 

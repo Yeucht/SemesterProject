@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class DataPacketTest {
     @Test
     void constructorAndGetters() {
-        List<MeterData> list = Collections.emptyList();
+        MeterData meterData = new MeterData();
         DataPacket p = new DataPacket(
                 "user",
                 "serial",
@@ -24,7 +24,7 @@ public class DataPacketTest {
                 "mun",
                 "owner",
                 "type",
-                list
+                meterData
         );
 
         assertEquals("user", p.getAuthUser());
@@ -39,7 +39,7 @@ public class DataPacketTest {
         assertEquals("mun", p.getMasterUnitNumber());
         assertEquals("owner", p.getMasterUnitOwnerId());
         assertEquals("type", p.getMasterUnitType());
-        assertSame(list, p.getMeterData());
+        assertSame(meterData, p.getMeterData());
     }
 
     @Test
@@ -57,7 +57,7 @@ public class DataPacketTest {
         p.setMasterUnitNumber("mu");
         p.setMasterUnitOwnerId("mo");
         p.setMasterUnitType("mt");
-        p.setMeterData(Collections.emptyList());
+        p.setMeterData(new MeterData());
 
         assertEquals("u", p.getAuthUser());
         assertEquals("s", p.getAuthSerialNumber());

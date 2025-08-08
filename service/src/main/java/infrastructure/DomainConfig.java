@@ -30,8 +30,8 @@ public class DomainConfig {
     }
 
     @Bean
-    public InjectionService injectionService(SimulationConfig config, Counter counter) {
-        return new InjectionService(config, counter);
+    public InjectionService injectionService(SimulationConfig config, Counter counter, DBManagerService dbManagerService) {
+        return new InjectionService(config, counter, dbManagerService);
     }
 
     @Bean

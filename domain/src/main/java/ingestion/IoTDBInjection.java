@@ -71,36 +71,39 @@ public class IoTDBInjection extends Injection {
         );
 
         try {
-            for (MeterData data : packet.getMeterData()) {
-                for (Integer payloadValue : data.getPayload()) {
-                    List<Object> values = Arrays.asList(
-                            packet.getAuthUser(),
-                            packet.getAuthSerialNumber(),
-                            packet.getAuthDigest(),
-                            packet.isAuthenticated(),
-                            packet.isMessageBrokerJob(),
-                            packet.getArchiverConnectionId(),
-                            packet.getCacheFileName(),
-                            packet.getMasterUnitNumber(),
-                            packet.getMasterUnitOwnerId(),
-                            packet.getMasterUnitType(),
-                            data.getAddress(),
-                            (long) packet.getConnectionCause(),
-                            (long) data.getSequence(),
-                            (long) data.getStatus(),
-                            (long) data.getVersion(),
-                            payloadValue.doubleValue()
-                    );
+            MeterData data = packet.getMeterData();
+            long seq = data.getSequence();
+            long status = data.getStatus();
+            long version = data.getVersion();
+            for (Integer payloadValue : data.getPayload()) {
+                List<Object> values = Arrays.asList(
+                        packet.getAuthUser(),
+                        packet.getAuthSerialNumber(),
+                        packet.getAuthDigest(),
+                        packet.isAuthenticated(),
+                        packet.isMessageBrokerJob(),
+                        packet.getArchiverConnectionId(),
+                        packet.getCacheFileName(),
+                        packet.getMasterUnitNumber(),
+                        packet.getMasterUnitOwnerId(),
+                        packet.getMasterUnitType(),
+                        data.getAddress(),
+                        (long) packet.getConnectionCause(),
+                        seq,
+                        status,
+                        version,
+                        payloadValue.doubleValue()
+                );
 
-                    // Envoi de la « ligne » IoTDB
-                    pool.insertRecord(
-                            deviceId,
-                            timestamp,
-                            measurements,
-                            types,
-                            values
-                    );
-                }
+                // Envoi de la « ligne » IoTDB
+                pool.insertRecord(
+                        deviceId,
+                        timestamp,
+                        measurements,
+                        types,
+                        values
+                );
+
             }
             System.out.println("Ingested DataPacket to IoTDB in " +
                     (System.currentTimeMillis() - timestamp) + " ms");
