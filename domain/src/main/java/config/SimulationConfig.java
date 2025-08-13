@@ -19,17 +19,29 @@ public class SimulationConfig {
     @Enumerated(EnumType.STRING)
     private DatabaseType dbType = DatabaseType.QUESTDB;
 
+    //would be suitable to create meterConfig and HESConfig
     private boolean clearTablesFlag = false;
-    private long retentionWindowMillis = 1000000000;
-    private float rate = 3.0f;
-    private float rateRandomess = 0.8f;
+    private long retentionWindowMillis = 1000000000; //usued for now
+    private boolean meterFlag = true; //active les smartmeters individuels
+    private boolean HESFlag = true; // active les Head-end systems
+    private int meterRate = 4; //probe par heure
+    private float meterRateRandomess = 0.2f; //between (1-x) and (1+x) * nbrMetersPerHES
+    private int HESRate = 2; //par jour
     private String url = "http://sp-service:8080/api/injection/data";
     private int nbrSmartMeters = 5000;
-    private boolean batch = false;
-    private int batchSize = 10;
-    private float batchRandomness = 0.2f;
-    private boolean mdmsBatch = false;
-    private int mdmsBatchSize = 10;
+    private int nbrHES = 400;
+    private int nbrMetersPerHES = 10; // smartmeters par HES
+    private float nbrMetersPerHESRandomness = 0.2f; //between (1-x) and (1+x) * nbrMetersPerHES
+    private boolean meterPayloadBatch = false;
+    private int meterPayloadBatchSize = 10;
+    private float meterPayloadBatchRandomness = 0.2f; //between (1-x) and (1+x) * batch size
+    private boolean HESSynchronized = false; //all HES at time t or if split at different times
+    private int HESRateRandomness = 50; //[0,100] defines if HES data comes at perfectly regular times (0) or if it's random over the timeframe
+    //Here 0 means at time t=0, one HES sends a datapacket. On time t+(HESRate/nbrHES), a second HES sends data.
+    //100 means the first sending time for each HES is set completely randomly over the first loop time (i.e. 1/HESRate day)
+
+    private boolean mdmsBatch = false; //unused for now (cache data in mdms)
+    private int mdmsBatchSize = 10; //unused for now
 
     public SimulationConfig() {}
 
@@ -37,26 +49,26 @@ public class SimulationConfig {
             DatabaseType dbType,
             boolean clearOnStart,
             long retentionWindowMillis,
-            int rate,
-            float rateRandomess,
+            int meterRate,
+            float meterRateRandomess,
             String url,
             int nbrSmartMeters,
-            boolean batch,
-            int batchSize,
-            float batchRandomness,
+            boolean meterPayloadBatch,
+            int meterPayloadBatchSize,
+            float meterPayloadBatchRandomness,
             boolean mdmsBatch,
             int mdmsBatchSize
     ) {
         this.dbType = dbType;
         this.clearTablesFlag = clearOnStart;
         this.retentionWindowMillis = retentionWindowMillis;
-        this.rate = rate;
-        this.rateRandomess = rateRandomess;
+        this.meterRate = meterRate;
+        this.meterRateRandomess = meterRateRandomess;
         this.url = url;
         this.nbrSmartMeters = nbrSmartMeters;
-        this.batch = batch;
-        this.batchSize = batchSize;
-        this.batchRandomness = batchRandomness;
+        this.meterPayloadBatch = meterPayloadBatch;
+        this.meterPayloadBatchSize = meterPayloadBatchSize;
+        this.meterPayloadBatchRandomness = meterPayloadBatchRandomness;
         this.mdmsBatch = mdmsBatch;
         this.mdmsBatchSize = mdmsBatchSize;
     }
@@ -85,20 +97,20 @@ public class SimulationConfig {
         this.retentionWindowMillis = retentionWindowMillis;
     }
 
-    public float getRate() {
-        return rate;
+    public float getMeterRate() {
+        return meterRate;
     }
 
-    public void setRate(float rate) {
-        this.rate = rate;
+    public void setMeterRate(float rate) {
+        this.meterRate = rate;
     }
 
-    public float getRateRandomess() {
-        return rateRandomess;
+    public float getMeterRateRandomess() {
+        return meterRateRandomess;
     }
 
-    public void setRateRandomess(float rateRandomess) {
-        this.rateRandomess = rateRandomess;
+    public void setMeterRateRandomess(float rateRandomess) {
+        this.meterRateRandomess = rateRandomess;
     }
 
     public String getUrl() {
@@ -117,28 +129,28 @@ public class SimulationConfig {
         this.nbrSmartMeters = nbrSmartMeters;
     }
 
-    public boolean isBatch() {
-        return batch;
+    public boolean isMeterPayloadBatch() {
+        return meterPayloadBatch;
     }
 
-    public void setBatch(boolean batch) {
-        this.batch = batch;
+    public void setMeterPayloadBatch(boolean batch) {
+        this.meterPayloadBatch = batch;
     }
 
-    public int getBatchSize() {
-        return batchSize;
+    public int getMeterPayloadBatchSize() {
+        return meterPayloadBatchSize;
     }
 
-    public void setBatchSize(int batchSize) {
-        this.batchSize = batchSize;
+    public void setMeterPayloadBatchSize(int batchSize) {
+        this.meterPayloadBatchSize = batchSize;
     }
 
-    public float getBatchRandomness() {
-        return batchRandomness;
+    public float getMeterPayloadBatchRandomness() {
+        return meterPayloadBatchRandomness;
     }
 
-    public void setBatchRandomness(float batchRandomness) {
-        this.batchRandomness = batchRandomness;
+    public void setMeterPayloadBatchRandomness(float batchRandomness) {
+        this.meterPayloadBatchRandomness = batchRandomness;
     }
 
     public void setMdmsBatch(boolean mdmsBatch) {
