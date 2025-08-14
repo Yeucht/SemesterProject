@@ -1,0 +1,84 @@
+{
+  "title": "SP — DB (Hikari)",
+  "uid": "sp-db",
+  "tags": ["sp","db"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "editable": true,
+  "refresh": "5s",
+  "time": { "from": "now-1h", "to": "now" },
+  "links": [
+    { "type": "dashboards", "asDropdown": true, "title": "SP Dashboards", "tags": ["sp"], "includeVars": true, "keepTime": true }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "instance",
+        "type": "query",
+        "label": "Instance",
+        "datasource": "Prometheus",
+        "includeAll": true,
+        "refresh": 2,
+        "query": "label_values(hikaricp_connections_max, instance)"
+      },
+      {
+        "name": "pool",
+        "type": "query",
+        "label": "Hikari Pool",
+        "datasource": "Prometheus",
+        "includeAll": true,
+        "refresh": 2,
+        "query": "label_values(hikaricp_connections_max, pool)"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Active connections",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "hikaricp_connections_active{instance=~\"$instance\",pool=~\"$pool\"}", "legendFormat": "{{instance}}/{{pool}}" }
+      ],
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Idle connections",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "hikaricp_connections_idle{instance=~\"$instance\",pool=~\"$pool\"}", "legendFormat": "{{instance}}/{{pool}}" }
+      ],
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Pool utilization (%)",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "100 * (hikaricp_connections_active{instance=~\"$instance\",pool=~\"$pool\"} / hikaricp_connections_max{instance=~\"$instance\",pool=~\"$pool\"})", "legendFormat": "{{instance}}/{{pool}}" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100 }, "overrides": [] },
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Pending connections",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "hikaricp_connections_pending{instance=~\"$instance\",pool=~\"$pool\"}", "legendFormat": "{{instance}}/{{pool}}" }
+      ],
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Timeouts (/min)",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "rate(hikaricp_connections_timeout_total{instance=~\"$instance\",pool=~\"$pool\"}[$__rate_interval]) * 60", "legendFormat": "{{instance}}/{{pool}}" }
+      ],
+      "gridPos": { "x": 0, "y": 16, "w": 12, "h": 8 }
+    }
+  ]
+}
