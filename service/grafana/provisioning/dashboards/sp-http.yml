@@ -1,0 +1,10 @@
+apiVersion: 1
+providers:
+  - name: 'Http'
+    orgId: 1
+    folder: 'Http'
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /var/lib/grafana/dashboards/sp-http

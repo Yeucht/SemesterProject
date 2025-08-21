@@ -45,12 +45,6 @@ public class MetricsService {
         this.meterRegistry = registry;
         this.counter = counter;
 
-        Gauge.builder("spservice_cpu_usage_percent", this, MetricsService::getCpuUsage)
-                .register(registry);
-
-        Gauge.builder("spservice_memory_used_bytes", this, MetricsService::getMemoryUsed)
-                .register(registry);
-
         Gauge.builder("spservice_inserted_so_far", this, MetricsService::getInsertedSoFar)
                 .register(registry);
     }
@@ -72,8 +66,8 @@ public class MetricsService {
         currentRun.setConfig(config);
 
         // 🔁 Prometheus-scraped metrics exposées par notre app
-        Map<Instant, Double> cpuSeries = prometheusService.queryTimeSeries("spservice_cpu_usage_percent", start, end);
-        Map<Instant, Double> memSeries = prometheusService.queryTimeSeries("spservice_memory_used_bytes", start, end);
+        Map<Instant, Double> cpuSeries = prometheusService.queryTimeSeries("avg_over_time(process_cpu_usage[15s]) * 100", start, end);
+        Map<Instant, Double> memSeries = prometheusService.queryTimeSeries("sum(jvm_memory_used_bytes{area=\"heap\"})", start, end);
         Map<Instant, Double> insertSeries = prometheusService.queryTimeSeries("spservice_inserted_so_far", start, end);
 
         // Fusionner tous les timestamps

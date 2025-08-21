@@ -1,0 +1,68 @@
+{
+  "title": "SP — HTTP",
+  "uid": "sp-http",
+  "tags": ["sp","http"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "editable": true,
+  "refresh": "5s",
+  "time": { "from": "now-1h", "to": "now" },
+  "links": [
+    { "type": "dashboards", "asDropdown": true, "title": "SP Dashboards", "tags": ["sp"], "includeVars": true, "keepTime": true }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "instance",
+        "type": "query",
+        "label": "Instance",
+        "datasource": "Prometheus",
+        "includeAll": true,
+        "refresh": 2,
+        "query": "label_values(http_server_requests_seconds_count, instance)"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "RPS by status",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "sum by (status) (rate(http_server_requests_seconds_count{instance=~\"$instance\"}[$__rate_interval]))", "legendFormat": "{{status}}" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "reqps" }, "overrides": [] },
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Latency p95 (ms)",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "1000 * histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{instance=~\"$instance\"}[$__rate_interval])) by (le))" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "ms" }, "overrides": [] },
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Errors 5xx (%)",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "100 * sum(rate(http_server_requests_seconds_count{status=~\"5..\",instance=~\"$instance\"}[$__rate_interval])) / sum(rate(http_server_requests_seconds_count{instance=~\"$instance\"}[$__rate_interval]))" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100 }, "overrides": [] },
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "In-flight requests (active)",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "sum by (instance) (http_server_requests_active_seconds_active_count{instance=~\"$instance\"})", "legendFormat": "{{instance}}" }
+      ],
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 }
+    }
+  ]
+}
