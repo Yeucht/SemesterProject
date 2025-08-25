@@ -61,7 +61,7 @@ const config = ref({
   clearTablesFlag: false,
   retentionWindowMillis: 1000000000,
   rate: 3,
-  rateRandomess: 0.8,
+  rateRandomness: 0.8,
   url: 'http://sp-service:8080/api/injection/data',
   nbrSmartMeters: 5000,
   batch: false,

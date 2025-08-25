@@ -1,10 +1,12 @@
 package service;
 
 import config.SimulationConfig;
-import dbmanager.DBManager;
 import ingestion.DataPacket;
 import ingestion.Injection;
 import factories.InjectionFactory;
+import ingestion.MeterData;
+
+import java.util.List;
 
 
 public class InjectionService {
@@ -29,12 +31,17 @@ public class InjectionService {
         this.dbManagerService = dbManagerService;
     }
 
-    public void sendDataToDataBase(DataPacket data){
+    public void sendDataToDataBase(List<DataPacket> data){
         try {
             injection.insertData(data);
-            counter.updateCounter(data.getMeterData().getPayload().size());
-            System.out.println("added : " + data.getMeterData().getPayload() + " with counter = " + counter.getCounter());
-            System.out.println("Supposed to be : " + dbManagerService.getDbManager().getRowCount());
+            for (DataPacket dataPacket : data) {
+                for (MeterData meterData : dataPacket.getMeteringData()){
+                    counter.updateCounter(meterData.getPayload().size());
+                    System.out.println("added : " + meterData.getPayload() + " with counter = " + counter.getCounter());
+                    System.out.println("Supposed to be : " + dbManagerService.getDbManager().getRowCount());
+                }
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
         }

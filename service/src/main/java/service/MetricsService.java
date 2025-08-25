@@ -5,6 +5,10 @@ import config.SimulationConfig;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.annotation.PostConstruct;
+import jakarta.transaction.Transactional;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import simulation.MetricPoint;
@@ -55,6 +59,7 @@ public class MetricsService {
         System.out.println("📈 Simulation started at: " + this.currentRun.getStartedAt());
     }
 
+    @Transactional
     public void stopRecording() {
         if (currentRun == null) return;
 
@@ -62,7 +67,7 @@ public class MetricsService {
         Instant end = Instant.now();
         currentRun.setEndedAt(end);
 
-        SimulationConfig config = configRepository.findById(configService.getConfig().getId()).orElseThrow();
+        SimulationConfig config = getOrCreate(configService.getConfig());
         currentRun.setConfig(config);
 
         // 🔁 Prometheus-scraped metrics exposées par notre app
@@ -136,5 +141,22 @@ public class MetricsService {
 
     public void updateInserts(int nbr){
         currentRun.setTotalInserted(currentRun.getTotalInserted() + nbr);
+    }
+
+    @Transactional
+    public SimulationConfig getOrCreate(SimulationConfig wanted) {
+        ExampleMatcher matcher = ExampleMatcher.matchingAll()
+                .withIgnorePaths("id"); // on ignore l'id
+
+        Example<SimulationConfig> example = Example.of(wanted, matcher);
+
+        return configRepository.findOne(example).orElseGet(() -> {
+            try {
+                return configRepository.save(wanted);
+            } catch (DataIntegrityViolationException e) {
+                // Concurrence : quelqu’un a inséré la même config entre temps
+                return configRepository.findOne(example).orElseThrow(() -> e);
+            }
+        });
     }
 }

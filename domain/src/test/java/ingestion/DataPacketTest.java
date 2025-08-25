@@ -2,7 +2,7 @@ import ingestion.DataPacket;
 import ingestion.MeterData;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -11,6 +11,8 @@ public class DataPacketTest {
     @Test
     void constructorAndGetters() {
         MeterData meterData = new MeterData();
+        ArrayList<MeterData> List = new ArrayList<MeterData>();
+        List.add(meterData);
         DataPacket p = new DataPacket(
                 "user",
                 "serial",
@@ -24,7 +26,7 @@ public class DataPacketTest {
                 "mun",
                 "owner",
                 "type",
-                meterData
+                List
         );
 
         assertEquals("user", p.getAuthUser());
@@ -39,12 +41,15 @@ public class DataPacketTest {
         assertEquals("mun", p.getMasterUnitNumber());
         assertEquals("owner", p.getMasterUnitOwnerId());
         assertEquals("type", p.getMasterUnitType());
-        assertSame(meterData, p.getMeterData());
+        assertSame(List, p.getMeteringData());
     }
 
     @Test
     void setters() {
         DataPacket p = new DataPacket();
+        MeterData meterData = new MeterData();
+        ArrayList<MeterData> List = new ArrayList<MeterData>();
+        List.add(meterData);
         p.setAuthUser("u");
         p.setAuthSerialNumber("s");
         p.setAuthDigest("d");
@@ -57,7 +62,7 @@ public class DataPacketTest {
         p.setMasterUnitNumber("mu");
         p.setMasterUnitOwnerId("mo");
         p.setMasterUnitType("mt");
-        p.setMeterData(new MeterData());
+        p.setMeteringData(List);
 
         assertEquals("u", p.getAuthUser());
         assertEquals("s", p.getAuthSerialNumber());
@@ -71,6 +76,6 @@ public class DataPacketTest {
         assertEquals("mu", p.getMasterUnitNumber());
         assertEquals("mo", p.getMasterUnitOwnerId());
         assertEquals("mt", p.getMasterUnitType());
-        assertNotNull(p.getMeterData());
+        assertNotNull(p.getMeteringData());
     }
 }

@@ -2,6 +2,8 @@ package ingestion;
 
 import config.SimulationConfig;
 
+import java.util.List;
+
 public class InfluxDBInjection extends Injection {
     private static final String INFLUX_URL = "http://localhost:8086";
     private static final String TOKEN = "_h_kvD14Rbr7nxhfM1hm4P1S1liKtQq6y2cK8k32cGwaj_V_puoB1cewvnp6KFEJfUOyaA2P4feO-HwG4134yg=="; // Set InfluxDB token here
@@ -13,7 +15,7 @@ public class InfluxDBInjection extends Injection {
     }
 
     @Override
-    public void insertData(DataPacket data) {}
+    public void insertData(List<DataPacket> data) {}
 /*
         try (InfluxDBClient client = InfluxDBClientFactory.create(INFLUX_URL, TOKEN.toCharArray(), ORG, BUCKET)) {
             var writeApi = client.getWriteApiBlocking();

@@ -23,7 +23,7 @@
         </label>
         <label>
           Rate randomness:
-          <input type="number" step="0.1" v-model.number="localConfig.rateRandomess" @input="emitUpdate" />
+          <input type="number" step="0.1" v-model.number="localConfig.rateRandomness" @input="emitUpdate" />
         </label>
         <label>
           Number of Smart Meters:

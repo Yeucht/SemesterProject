@@ -15,7 +15,7 @@ public class DataPacket {
     private String masterUnitNumber;
     private String masterUnitOwnerId;
     private String masterUnitType;
-    private MeterData meterData;
+    private List<MeterData> meteringData;
 
     public DataPacket() {}
 
@@ -32,7 +32,7 @@ public class DataPacket {
             String masterUnitNumber,
             String masterUnitOwnerId,
             String masterUnitType,
-            MeterData meterData
+            List<MeterData> meteringData
     ) {
         this.authUser = authUser;
         this.authSerialNumber = authSerialNumber;
@@ -46,7 +46,7 @@ public class DataPacket {
         this.masterUnitNumber = masterUnitNumber;
         this.masterUnitOwnerId = masterUnitOwnerId;
         this.masterUnitType = masterUnitType;
-        this.meterData = meterData;
+        this.meteringData = meteringData;
     }
 
     public String getAuthUser() {
@@ -145,11 +145,11 @@ public class DataPacket {
         this.masterUnitType = masterUnitType;
     }
 
-    public MeterData getMeterData() {
-        return meterData;
+    public List<MeterData> getMeteringData() {
+        return meteringData;
     }
 
-    public void setMeterData(MeterData meterData) {
-        this.meterData = meterData;
+    public void setMeteringData(List<MeterData> meteringData) {
+        this.meteringData = meteringData;
     }
 }

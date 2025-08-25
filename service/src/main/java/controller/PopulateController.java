@@ -23,7 +23,7 @@ public class PopulateController {
     public String populateTestRun() {
         // 1. Création de la config
         SimulationConfig config = new SimulationConfig();
-        config.setMeterRate(5.0f);
+        config.setMeterRate(5);
         config.setMeterPayloadBatchSize(64);
         config.setNbrSmartMeters(10000);
         config.setUrl("http://localhost:8080/api/injection/data");

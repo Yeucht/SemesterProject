@@ -6,6 +6,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import service.InjectionService;
 
+import java.util.List;
+
 @CrossOrigin(origins = "http://localhost:7000")
 @RestController
 @RequestMapping("/injection")
@@ -18,14 +20,15 @@ public class InjectionController {
     }
 
     @PostMapping("/data")
-    public ResponseEntity<String> injection(@RequestBody DataPacket data) {
-        System.out.println("Received data from Flask:");
-        System.out.println(data);
-
-        injectionService.sendDataToDataBase(data);
-
-        return ResponseEntity.ok("Received");
+    public ResponseEntity<String> injection(@RequestBody List<DataPacket> dataPackets) {
+        if (dataPackets == null || dataPackets.isEmpty()) {
+            return ResponseEntity.badRequest().body("Empty payload");
+        }
+        System.out.println("Received " + dataPackets.size() + " packet(s) from Flask.");
+        injectionService.sendDataToDataBase(dataPackets);
+        return ResponseEntity.ok("Received " + dataPackets.size());
     }
+
 
     @GetMapping("/data")
     public ResponseEntity<String> injection() {

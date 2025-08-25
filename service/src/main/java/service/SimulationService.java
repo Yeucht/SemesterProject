@@ -34,8 +34,11 @@ public class SimulationService {
         metricsService.startRecording();
         if (configService.getConfig().getClearTablesFlag()){
             dbManagerService.clearTables();
+            dbManagerService.updateCounter(0);
+        }else {
+            dbManagerService.updateCounter();
         }
-        dbManagerService.updateCounter();
+
         String target = FLASK_BASE_URL + "/start";
         URL url = new URL(target);
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -84,6 +87,7 @@ public class SimulationService {
         metricsService.stopRecording();
         return responseCode;
     }
+
 
     public boolean isRunning() {
         return running;

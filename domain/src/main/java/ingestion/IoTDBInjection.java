@@ -25,8 +25,8 @@ public class IoTDBInjection extends Injection {
     }
 
     @Override
-    public void insertData(DataPacket packet) {
-        SessionPool pool = dbManager.getSessionPool();
+    public void insertData(List<DataPacket> packet) {
+        /*SessionPool pool = dbManager.getSessionPool();
         String deviceId = STORAGE_GROUP + ".meter_" + packet.getAuthSerialNumber();
         long timestamp = packet.getReceivedTime();
 
@@ -71,7 +71,7 @@ public class IoTDBInjection extends Injection {
         );
 
         try {
-            MeterData data = packet.getMeterData();
+            MeterData data = packet.getMeteringData();
             long seq = data.getSequence();
             long status = data.getStatus();
             long version = data.getVersion();
@@ -107,9 +107,12 @@ public class IoTDBInjection extends Injection {
             }
             System.out.println("Ingested DataPacket to IoTDB in " +
                     (System.currentTimeMillis() - timestamp) + " ms");
+
+
         } catch (IoTDBConnectionException | StatementExecutionException e) {
             System.err.println("Error during IoTDB data insertion: " + e.getMessage());
             e.printStackTrace();
         }
+        */
     }
 }

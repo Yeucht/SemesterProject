@@ -2,6 +2,8 @@ package ingestion;
 
 import config.SimulationConfig;
 
+import java.util.List;
+
 
 public abstract class Injection {
     protected SimulationConfig config = new SimulationConfig();
@@ -11,6 +13,6 @@ public abstract class Injection {
     }
 
     // Method to be overridden for inserting records
-    public abstract void insertData(DataPacket data);
+    public abstract void insertData(List<DataPacket> data);
 
 }
