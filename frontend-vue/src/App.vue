@@ -17,6 +17,7 @@
               :status="status"
               @update-config="updateConfig"
               @send-config="sendConfig"
+              @toggle="toggleSimulation"
           />
           <div class="simulation-controls">
             <button @click="toggleSimulation">
@@ -57,16 +58,33 @@ const tabs = ['Simulation', 'Performances', 'Performances2', 'Dashboards', 'Quer
 const currentTab = ref('Simulation')
 
 const config = ref({
+  // DB
   dbType: 'QUESTDB',
   clearTablesFlag: false,
-  retentionWindowMillis: 1000000000,
-  rate: 3,
-  rateRandomness: 0.8,
-  url: 'http://sp-service:8080/api/injection/data',
+
+  // Individual Meters
+  meterFlag: true,
+  meterRate: 4,
+  meterRateRandomness: 0.2,
   nbrSmartMeters: 5000,
-  batch: false,
-  batchSize: 10,
-  batchRandomness: 0.2
+  probeRate: 4,
+
+  // HES
+  hesFlag: true,
+  hesSynchronized: false,
+  hesRate: 2,              // batches / jour
+  nbrHES: 400,
+  nbrMetersPerHESRandomness: 0.2,
+  hesRateRandomness: 50,   // 0..100
+
+  // HES Meters
+  hesMeterRate: 4,
+  hesMeterRateRandomness: 0.2,
+  hesProbeRate: 4,
+  nbrMetersPerHES: 10,
+
+  // MDMS / API
+  url: 'http://sp-service:8080/api/injection/data',
 })
 
 const loading = ref(true)
