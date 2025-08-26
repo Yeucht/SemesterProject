@@ -22,6 +22,7 @@
           :width="imgHesMetersRect.w" :height="imgHesMetersRect.h"
           :style="{ opacity: config.hesFlag ? 1 : 0.55 }"
           @click.stop="open('hesMeters', $event)"
+          preserveAspectRatio="xMidYMid meet"
       />
       <!-- Individual Smart Meters (bas gauche) -->
       <image
@@ -31,45 +32,55 @@
           :width="imgMetersRect.w" :height="imgMetersRect.h"
           :style="{ opacity: config.meterFlag ? 1 : 0.55 }"
           @click.stop="open('meters', $event)"
+          preserveAspectRatio="xMidYMid meet"
       />
 
       <!-- === BLOCS === -->
-      <!-- HES -->
-      <text class="t-title" :x="centerX(hesRect)" :y="hesRect.y+20" text-anchor="middle" font-weight="700">
-        Head-End Systems ({{ config.nbrHES }})
-      </text>
 
-      <image
-          class="hot img"
-          :href="imgServers"
-          :x="hesRect.x" :y="hesRect.y"
-          :width="hesRect.w" :height="hesRect.h"
-          preserveAspectRatio="xMidYMid meet"
-          :style="{ opacity: config.hesFlag ? 1 : 0.55 }"
-          @click.stop="open('hes', $event)"
-      />
+      <!-- HES (groupe cliquable + hitbox couvrant image + titre) -->
+      <g class="hot" @click.stop="open('hes', $event)">
+        <rect
+            class="hitbox"
+            :x="hesRect.x" :y="hesRect.y-28"
+            :width="hesRect.w" :height="hesRect.h+44"
+        />
+        <text class="t-title" :x="centerX(hesRect)" :y="hesRect.y+20" text-anchor="middle" font-weight="700">
+          Head-End Systems ({{ config.nbrHES }})
+        </text>
+        <image
+            class="img"
+            :href="imgServers"
+            :x="hesRect.x" :y="hesRect.y"
+            :width="hesRect.w" :height="hesRect.h"
+            preserveAspectRatio="xMidYMid meet"
+            :style="{ opacity: config.hesFlag ? 1 : 0.55 }"
+        />
+      </g>
 
-
-      <!-- MDMS -->
+      <!-- MDMS (déjà groupé et cliquable) -->
       <g @click.stop="open('mdms', $event)" class="hot">
-        <!-- ⬇️ couleur dédiée -->
         <rect class="box-mdms" :x="mdmsRect.x" :y="mdmsRect.y" :width="mdmsRect.w" :height="mdmsRect.h" rx="16"/>
-        <!-- ⬇️ titre complet -->
         <text class="t-title" :x="centerX(mdmsRect)" :y="mdmsRect.y+28" text-anchor="middle" font-weight="700">
           Meter Data Management System
         </text>
       </g>
 
-      <!-- DB (image) -->
-      <image
-          class="hot img"
-          :href="imgDb"
-          :x="dbRect.x" :y="dbRect.y"
-          :width="dbRect.w" :height="dbRect.h"
-          @click.stop="open('db', $event)"
-      />
-
-      <text class="t-title" :x="centerX(dbRect)" :y="dbRect.y" text-anchor="middle" font-weight="700">Database</text>
+      <!-- DB (groupe cliquable + hitbox couvrant image + titre) -->
+      <g class="hot" @click.stop="open('db', $event)">
+        <rect
+            class="hitbox"
+            :x="dbRect.x" :y="dbRect.y-28"
+            :width="dbRect.w" :height="dbRect.h+40"
+        />
+        <image
+            class="img"
+            :href="imgDb"
+            :x="dbRect.x" :y="dbRect.y"
+            :width="dbRect.w" :height="dbRect.h"
+            preserveAspectRatio="xMidYMid meet"
+        />
+        <text class="t-title" :x="centerX(dbRect)" :y="dbRect.y" text-anchor="middle" font-weight="700">Database</text>
+      </g>
 
       <!-- LEGEND/labels images à gauche -->
       <text class="t-title" :x="centerX(imgMetersRect)" :y="imgMetersRect.y-10" text-anchor="middle" font-weight="700">
@@ -106,49 +117,48 @@
         Activate
       </label>
 
-      <label>
-        Number of Smart Meters
-        <input
-            type="number" min="1" step="100"
-            v-model.number="local.nbrSmartMeters"
-            @input="emitUpdate"
-            :style="autoWidth(local.nbrSmartMeters)"
-        />
-      </label>
+      <fieldset :disabled="!local.meterFlag">
+        <label>
+          Number of Smart Meters
+          <input
+              type="number" min="1" step="100"
+              v-model.number="local.nbrSmartMeters"
+              @input="emitUpdate"
+              :style="autoWidth(local.nbrSmartMeters)"
+          />
+        </label>
 
-      <label>
-        Send rate
-        <input
-            type="number" min="0" step="1"
-            v-model.number="local.meterRate"
-            @input="emitUpdate"
-            :style="autoWidth(local.meterRate)"
-        /> /h
-      </label>
+        <label>
+          Send rate
+          <input
+              type="number" min="0" step="1"
+              v-model.number="local.meterRate"
+              @input="emitUpdate"
+              :style="autoWidth(local.meterRate)"
+          /> /h
+        </label>
 
-      <label>
-        Rate randomness
-        <input
-            type="number" min="0" max="1" step="0.05"
-            v-model.number="local.meterRateRandomness"
-            @input="emitUpdate"
-            :style="autoWidth(local.meterRateRandomness)"
-        />
-      </label>
+        <label>
+          Rate randomness
+          <input
+              type="number" min="0" max="1" step="0.05"
+              v-model.number="local.meterRateRandomness"
+              @input="emitUpdate"
+              :style="autoWidth(local.meterRateRandomness)"
+          />
+        </label>
 
-      <label>
-        Probe rate
-        <input
-            type="number" min="0" step="1"
-            v-model.number="local.probeRate"
-            @input="emitUpdate"
-            :style="autoWidth(local.probeRate)"
-        /> /h
-      </label>
-
-
+        <label>
+          Probe rate
+          <input
+              type="number" min="0" step="1"
+              v-model.number="local.probeRate"
+              @input="emitUpdate"
+              :style="autoWidth(local.probeRate)"
+          /> /h
+        </label>
+      </fieldset>
     </NodePopover>
-
 
     <NodePopover
         v-if="openKey==='hesMeters'"
@@ -156,58 +166,61 @@
         :x="pop.x" :y="pop.y"
         @close="closePop"
     >
-      <label>
-        Average number per HES
-        <input
-            type="number" min="1" step="1"
-            v-model.number="local.nbrMetersPerHES"
-            @input="emitUpdate"
-            :style="autoWidth(local.nbrMetersPerHES)"
-        />
-      </label>
+      <!-- désactivé si HES inactif -->
+      <fieldset :disabled="!local.hesFlag">
+        <label>
+          Average number per HES
+          <input
+              type="number" min="1" step="1"
+              v-model.number="local.nbrMetersPerHES"
+              @input="emitUpdate"
+              :style="autoWidth(local.nbrMetersPerHES)"
+          />
+        </label>
 
-      <label>
-        Associated randomness
-        <input
-            type="number" min="0" max="1" step="0.05"
-            v-model.number="local.nbrMetersPerHESRandomness"
-            @input="emitUpdate"
-            :style="autoWidth(local.nbrMetersPerHESRandomness)"
-        />
-      </label>
+        <label>
+          Associated randomness
+          <input
+              type="number" min="0" max="1" step="0.05"
+              v-model.number="local.nbrMetersPerHESRandomness"
+              @input="emitUpdate"
+              :style="autoWidth(local.nbrMetersPerHESRandomness)"
+          />
+        </label>
 
-      <br>
-      <label>
-        Send rate
-        <input
-            type="number" min="0" step="1"
-            v-model.number="local.hesMeterRate"
-            @input="emitUpdate"
-            :style="autoWidth(local.hesMeterRate)"
-        /> /h
-      </label>
+        <br>
+        <label>
+          Send rate
+          <input
+              type="number" min="0" step="1"
+              v-model.number="local.hesMeterRate"
+              @input="emitUpdate"
+              :style="autoWidth(local.hesMeterRate)"
+          /> /h
+        </label>
 
-      <label>
-        Probe rate (>= Send rate)
-        <input
-            type="number" min="0" step="1"
-            v-model.number="local.hesProbeRate"
-            @input="emitUpdate"
-            :style="autoWidth(local.hesProbeRate)"
-        /> /h
-      </label>
+        <label>
+          Probe rate (>= Send rate)
+          <input
+              type="number" min="0" step="1"
+              v-model.number="local.hesProbeRate"
+              @input="emitUpdate"
+              :style="autoWidth(local.hesProbeRate)"
+          /> /h
+        </label>
 
-      <label>
-        Rate randomness
-        <input
-            type="number" min="0" max="1" step="0.05"
-            v-model.number="local.hesMeterRateRandomness"
-            @input="emitUpdate"
-            :style="autoWidth(local.hesMeterRateRandomness)"
-        />
-      </label>
+        <label>
+          Rate randomness
+          <input
+              type="number" min="0" max="1" step="0.05"
+              v-model.number="local.hesMeterRateRandomness"
+              @input="emitUpdate"
+              :style="autoWidth(local.hesMeterRateRandomness)"
+          />
+        </label>
+      </fieldset>
+      <small v-if="!local.hesFlag" style="opacity:.8">Enable HES to edit these settings.</small>
     </NodePopover>
-
 
     <NodePopover
         v-if="openKey==='hes'"
@@ -220,42 +233,45 @@
         Activate
       </label>
 
-      <label>
-        # HES
-        <input
-            type="number" min="1" step="10"
-            v-model.number="local.nbrHES"
-            @input="emitUpdate"
-            :style="autoWidth(local.nbrHES)"
-        />
-      </label>
+      <fieldset :disabled="!local.hesFlag">
+        <label>
+          # HES
+          <input
+              type="number" min="1" step="10"
+              v-model.number="local.nbrHES"
+              @input="emitUpdate"
+              :style="autoWidth(local.nbrHES)"
+          />
+        </label>
 
-      <label>
-        HES send rate
-        <input
-            type="number" min="1" step="1"
-            v-model.number="local.hesRate"
-            @input="emitUpdate"
-            :style="autoWidth(local.hesRate)"
-        /> /day
-      </label>
+        <label>
+          HES send rate
+          <input
+              type="number" min="1" step="1"
+              v-model.number="local.hesRate"
+              @input="emitUpdate"
+              :style="autoWidth(local.hesRate)"
+          /> /day
+        </label>
 
-      <label>
-        HES synchronized
-        <input type="checkbox" v-model="local.hesSynchronized" @change="emitUpdate">
-      </label>
+        <label>
+          HES synchronized
+          <input type="checkbox" v-model="local.hesSynchronized" @change="emitUpdate">
+        </label>
 
-      <label>
-        Schedule randomness (0..100)
-        <input
-            type="number" min="0" max="100" step="1"
-            v-model.number="local.hesRateRandomness"
-            @input="emitUpdate"
-            :style="autoWidth(local.hesRateRandomness)"
-        />
-      </label>
+        <label>
+          Schedule randomness (0..100)
+          <input
+              type="number" min="0" max="100" step="1"
+              v-model.number="local.hesRateRandomness"
+              @input="emitUpdate"
+              :style="autoWidth(local.hesRateRandomness)"
+              :disabled="local.hesSynchronized"
+              :title="local.hesSynchronized ? 'Disabled when synchronized is ON' : ''"
+          />
+        </label>
+      </fieldset>
     </NodePopover>
-
 
     <NodePopover
         v-if="openKey==='mdms'"
@@ -294,18 +310,17 @@ const local = reactive({ ...props.config })
 watch(() => props.config, v => Object.assign(local, v || {}))
 function emitUpdate(){ emit('update', { ...local }) }
 
-/* --- positions (fixes & simples) --- */
+/* positions */
 const imgHesMetersRect = reactive({ x: 60,  y: 100,  w: 220, h: 120 })
 const imgMetersRect     = reactive({ x: 60,  y: 355, w: 220, h: 120 })
 const hesRect           = reactive({ x: 460, y: 60,  w: 330, h: 200 })
 const mdmsRect          = reactive({ x: 460, y: 330, w: 330, h: 170 })
 const dbRect            = reactive({ x: 980, y: 335,  w: 160, h: 160 })
 
-/* --- helpers géométrie --- */
+/* helpers géométrie */
 const centerX = r => r.x + r.w/2
 const centerY = r => r.y + r.h/2
 
-// ligne droite centre droite -> centre gauche
 function edgeRightToLeft(from, to){
   const x1 = from.x + from.w
   const y1 = centerY(from)
@@ -313,7 +328,6 @@ function edgeRightToLeft(from, to){
   const y2 = centerY(to)
   return `M ${x1} ${y1} L ${x2} ${y2}`
 }
-// ligne bas centre -> haut centre
 function edgeBottomToTop(from, to){
   const x1 = centerX(from)
   const y1 = from.y - 40 + from.h
@@ -322,7 +336,7 @@ function edgeBottomToTop(from, to){
   return `M ${x1} ${y1} L ${x2} ${y2}`
 }
 
-/* --- popovers --- */
+/* popovers */
 const openKey = ref(null)
 const pop = reactive({ x:0, y:0 })
 function open(key, ev){
@@ -334,32 +348,25 @@ function open(key, ev){
 }
 function closePop(){ openKey.value = null }
 
-// largeur auto en "ch" (caractères) selon la longueur de la valeur
+/* largeur auto des inputs */
 function autoWidth(v, min = 5, max = 14) {
   const s = String(v ?? '');
-  const len = s.replace('-', '').length || 1; // ignore le signe
-  const w = Math.min(max, Math.max(min, len + 2)); // +2 pour le padding visuel
+  const len = s.replace('-', '').length || 1;
+  const w = Math.min(max, Math.max(min, len + 2));
   return { width: `${w}ch` };
 }
-
-
-/* --- styles --- */
-function boxClass(active){ return active ? 'box' : 'box box--off' }
 </script>
 
 <style scoped>
 .diagram{ position:relative; background:#f8fafc; border:1px solid #e5e7eb; border-radius:16px; padding:.5rem }
 .svg{ width:100%; height:auto; display:block }
 
-.box{ fill:#f1f5f9; stroke:#1f2937; stroke-width:1.2 }   /* blocs normaux */
-.box-mdms{ fill:#e2e8f0; stroke:#1f2937; stroke-width:1.2 } /* ⬅︎ MDMS plus foncé */
+.box{ fill:#f1f5f9; stroke:#1f2937; stroke-width:1.2 }
+.box-mdms{ fill:#e2e8f0; stroke:#1f2937; stroke-width:1.2 }
 .box--off{ opacity:.55 }
 
-.arrow{ fill:none; stroke:#1f2937; stroke-width:2 }
-
+.arrow{ fill:none; stroke:#1f2937; stroke-width:2; pointer-events:none } /* ⬅︎ ne bloque pas les clics */
 .img{ filter: drop-shadow(0 2px 6px rgba(0,0,0,.08)); }
 .hot{ cursor:pointer }
-.hot:hover .box{ filter: drop-shadow(0 2px 10px rgba(0,0,0,.15)); }
-
-
+.svg .hitbox{ fill:transparent; pointer-events:all }      /* ⬅︎ zone cliquable étendue */
 </style>

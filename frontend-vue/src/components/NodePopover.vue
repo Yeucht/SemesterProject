@@ -27,7 +27,7 @@ defineEmits(['close'])
 <style scoped>
 .popover{
   position:absolute; z-index:20;
-  background:#e2e8f0;               /* gris clair du popover */
+  background:#e2e8f0;
   border:1px solid #cbd5e1;
   border-radius:14px;
   box-shadow:0 12px 30px rgba(0,0,0,.14);
@@ -48,12 +48,12 @@ defineEmits(['close'])
   display:grid; gap:.75rem;
 }
 
-/* le contenu du <slot> vient du parent → on cible via :deep() */
+/* slot */
 .popover :deep(label){
   display:flex; align-items:center; gap:.6rem; justify-content:flex-start;
 }
 
-/* ✅ Inputs lisibles (fond blanc) même si fournis par le parent */
+/* inputs normaux */
 .popover :deep(input[type="number"]),
 .popover :deep(input[type="text"]),
 .popover :deep(select),
@@ -65,7 +65,6 @@ defineEmits(['close'])
   padding:.35rem .5rem;
   font-variant-numeric: tabular-nums;
 }
-
 .popover :deep(input[type="number"]:focus),
 .popover :deep(input[type="text"]:focus),
 .popover :deep(select:focus),
@@ -74,6 +73,17 @@ defineEmits(['close'])
   border-color:#2563eb;
   box-shadow:0 0 0 3px rgba(37,99,235,.18);
   background:#ffffff;
+}
+
+/* ⬇︎ états désactivés lisibles */
+.popover :deep(fieldset[disabled]){ opacity:.95 }
+.popover :deep(input:disabled),
+.popover :deep(select:disabled),
+.popover :deep(textarea:disabled){
+  background:#f8fafc;
+  color:#94a3b8;
+  border-color:#e2e8f0;
+  cursor:not-allowed;
 }
 
 .toggle-center{ justify-content:center !important; text-align:center !important }
