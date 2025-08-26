@@ -8,6 +8,8 @@ import java.net.URL;
 import dbmanager.DBManager;
 import jakarta.transaction.Transactional;
 import simulation.*;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestClientResponseException;
 
 
 public class SimulationService {
@@ -19,12 +21,14 @@ public class SimulationService {
     private final Counter counter;
     private final DBManagerService dbManagerService;
     private boolean running = false;
+    private FlaskClient flaskClient;
 
-    public SimulationService(ConfigService configService, MetricsService metricsService, Counter counter, DBManagerService dbManager) {
+    public SimulationService(ConfigService configService, MetricsService metricsService, Counter counter, DBManagerService dbManager, FlaskClient flaskClient) {
         this.configService = configService;
         this.metricsService = metricsService;
         this.counter = counter;
         this.dbManagerService = dbManager;
+        this.flaskClient = flaskClient;
     }
 
     /**
@@ -32,61 +36,44 @@ public class SimulationService {
      */
     public int startSimulation() throws Exception {
         metricsService.startRecording();
+
         if (configService.getConfig().getClearTablesFlag()){
             dbManagerService.clearTables();
             dbManagerService.updateCounter(0);
-        }else {
+        } else {
             dbManagerService.updateCounter();
         }
 
-        String target = FLASK_BASE_URL + "/start";
-        URL url = new URL(target);
-        HttpURLConnection con = (HttpURLConnection) url.openConnection();
-        con.setRequestMethod("GET");
-        con.setConnectTimeout(5000);
-        con.setReadTimeout(5000);
-
-        int responseCode = con.getResponseCode();
-        // Optionally read response body
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()))) {
-            String line;
-            while ((line = in.readLine()) != null) {
-                System.out.println("Hello" + line);
+        try {
+            ResponseEntity<String> resp = flaskClient.start();
+            if (resp.getStatusCode().is2xxSuccessful()) {
+                running = true;
             }
+            return resp.getStatusCode().value();
+        } catch (RestClientResponseException ex) {
+            return ex.getRawStatusCode();
         }
-        con.disconnect();
-        if (responseCode == 200) {
-            running = true;
-        }
-        return responseCode;
     }
+
 
     /**
      * Stops the external simulation by invoking the Flask '/stop' endpoint.
      */
     @Transactional
     public int stopSimulation() throws Exception {
-        String target = FLASK_BASE_URL + "/stop";
-        URL url = new URL(target);
-        HttpURLConnection con = (HttpURLConnection) url.openConnection();
-        con.setRequestMethod("GET");
-        con.setConnectTimeout(5000);
-        con.setReadTimeout(5000);
-
-        int responseCode = con.getResponseCode();
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()))) {
-            String line;
-            while ((line = in.readLine()) != null) {
-                System.out.println(line);
+        try {
+            ResponseEntity<String> resp = flaskClient.stop();
+            if (resp.getStatusCode().is2xxSuccessful()) {
+                running = false;
             }
+            metricsService.stopRecording();
+            return resp.getStatusCode().value();
+        } catch (RestClientResponseException ex) {
+            metricsService.stopRecording();
+            return ex.getRawStatusCode();
         }
-        if (responseCode == 200) {
-            running = false;
-        }
-        con.disconnect();
-        metricsService.stopRecording();
-        return responseCode;
     }
+
 
 
     public boolean isRunning() {

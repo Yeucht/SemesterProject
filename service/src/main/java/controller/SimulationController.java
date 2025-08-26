@@ -18,6 +18,7 @@ public class SimulationController {
         this.simulationService = simulationService;
     }
 
+
     @GetMapping("/start")
     public ResponseEntity<String> start() {
         try {

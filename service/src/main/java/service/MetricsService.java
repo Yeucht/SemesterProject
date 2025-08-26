@@ -53,9 +53,10 @@ public class MetricsService {
                 .register(registry);
     }
 
+    @Transactional
     public void startRecording() {
-        configRepository.save(configService.getConfig());
-        this.currentRun = new SimulationRun(this.configService.getConfig());
+        configRepository.save(getOrCreate(configService.getConfig()));
+        this.currentRun = new SimulationRun(getOrCreate(this.configService.getConfig()));
         System.out.println("📈 Simulation started at: " + this.currentRun.getStartedAt());
     }
 
@@ -145,6 +146,7 @@ public class MetricsService {
 
     @Transactional
     public SimulationConfig getOrCreate(SimulationConfig wanted) {
+        wanted.normalize();
         ExampleMatcher matcher = ExampleMatcher.matchingAll()
                 .withIgnorePaths("id"); // on ignore l'id
 

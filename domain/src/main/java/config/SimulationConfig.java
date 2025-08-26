@@ -23,13 +23,12 @@ import jakarta.persistence.*;
                         "hesMeterRate",
                         "hesMeterRateRandomness",
                         "nbrMetersPerHESRandomness",
-                        "meterPayloadBatch",
-                        "meterPayloadBatchSize",
-                        "meterPayloadBatchRandomness",
                         "hesSynchronized",
                         "hesRateRandomness",
                         "mdmsBatch",
-                        "mdmsBatchSize"
+                        "mdmsBatchSize",
+                        "probeRate",
+                        "hesProbeRate"
                 }
         )
 )
@@ -53,29 +52,30 @@ public class SimulationConfig {
 
     //Individual Meters Config
     private boolean meterFlag = true; //active les smartmeters individuels
-    private int meterRate = 4; //probe par heure
+    private int meterRate = 4; //rate auquel les compteurs envoient les données
     private float meterRateRandomness = 0.2f; //between (1-x) and (1+x) * meterRate
     private int nbrSmartMeters = 5000;
-    private boolean meterPayloadBatch = false;
-    private int meterPayloadBatchSize = 10;
-    private float meterPayloadBatchRandomness = 0.2f; //between (1-x) and (1+x) * batch size
+    private int probeRate = 4; //rate auquel les compteurs prennent des données
 
     //HES Config
     private boolean hesFlag = true; // active les Head-end systems
     private boolean hesSynchronized = false; //all HES at time t or if split at different times
-    private int hesRate = 2; //par jour
+    private int hesRate = 2; //par jour, rate auquel les HES envoient les batches de données
     private int nbrHES = 400;
     private float nbrMetersPerHESRandomness = 0.2f; //between (1-x) and (1+x) * nbrMetersPerHES
+    private int hesRateRandomness = 50;
+    /*[0,100] defines if HES data comes at perfectly regular times (0) or if it's random over the interval between
+     a single smart meter is supposed to send data (1/hesRate)
+    Here 0 means at time t=0, one HES sends a datapacket. On time t+(HESRate/nbrHES), a second HES sends data.
+    100 means the first sending time for each HES is set completely randomly over the first loop time (i.e. 1/HESRate day)
+    */
 
     //HES Meters Config
-    private int hesMeterRate = 4; //probe par heure
+    private int hesMeterRate = 4; //rate auquel les compteurs envoient les données
     private float hesMeterRateRandomness = 0.2f; //between (1-x) and (1+x) * meterRate
+    private int hesProbeRate = 4; //rate auquel les compteurs prennent des données
     private int nbrMetersPerHES = 10; // smartmeters par HES
-    private int hesRateRandomness = 50; //[0,100] defines if HES data comes at perfectly regular times (0) or if it's random over the timeframe
-    //Here 0 means at time t=0, one HES sends a datapacket. On time t+(HESRate/nbrHES), a second HES sends data.
-    //100 means the first sending time for each HES is set completely randomly over the first loop time (i.e. 1/HESRate day)
-    //private int hesMeterPayloadBatchSize = 10;
-    //private float hesMeterPayloadBatchRandomness = 0.2f;
+
 
     //MDMS Config
     private String url = "http://sp-service:8080/api/injection/data";
@@ -94,28 +94,66 @@ public class SimulationConfig {
             float meterRateRandomness,
             String url,
             int nbrSmartMeters,
-            boolean meterPayloadBatch,
-            int meterPayloadBatchSize,
-            float meterPayloadBatchRandomness,
             boolean mdmsBatch,
             int mdmsBatchSize,
             int hesMeterRate,
-            float hesMeterRateRandomness
+            float hesMeterRateRandomness,
+            int probeRate,
+            int hesProbeRate
     ) {
         this.dbType = dbType;
         this.clearTablesFlag = clearOnStart;
         this.retentionWindowMillis = retentionWindowMillis;
-        this.meterRate = meterRate;
         this.meterRateRandomness = meterRateRandomness;
         this.url = url;
         this.nbrSmartMeters = nbrSmartMeters;
-        this.meterPayloadBatch = meterPayloadBatch;
-        this.meterPayloadBatchSize = meterPayloadBatchSize;
-        this.meterPayloadBatchRandomness = meterPayloadBatchRandomness;
         this.mdmsBatch = mdmsBatch;
         this.mdmsBatchSize = mdmsBatchSize;
-        this.hesMeterRate = hesMeterRate;
         this.hesMeterRateRandomness = hesMeterRateRandomness;
+        this.probeRate = probeRate;
+        this.hesProbeRate = hesProbeRate;
+        if (meterRate > probeRate){
+            this.meterRate = probeRate;
+        }else{
+            this.meterRate = meterRate;
+        }
+        if (hesMeterRate > hesProbeRate){
+            this.hesMeterRate = hesProbeRate;
+        }else{
+            this.hesMeterRate = hesMeterRate;
+        }
+    }
+
+    public void normalize() {
+        // clamp positifs (si tu veux)
+        if (probeRate < 0) probeRate = 0;
+        if (hesProbeRate < 0) hesProbeRate = 0;
+        if (meterRate < 0) meterRate = 0;
+        if (hesMeterRate < 0) hesMeterRate = 0;
+
+        // règles de cohérence APRES que tous les champs sont connus
+        if (meterRate > probeRate) {
+            meterRate = probeRate;
+        }
+        if (hesMeterRate > hesProbeRate) {
+            hesMeterRate = hesProbeRate;
+        }
+    }
+
+    public int getProbeRate(){
+        return probeRate;
+    }
+
+    public void setProbeRate(int probeRate){
+        this.probeRate = probeRate;
+    }
+
+    public int getHesProbeRate(){
+        return hesProbeRate;
+    }
+
+    public void setHesProbeRate(int hesProbeRate){
+        this.hesProbeRate = hesProbeRate;
     }
 
     public float getHesMeterRateRandomness(){return hesMeterRateRandomness;}
@@ -192,29 +230,6 @@ public class SimulationConfig {
         this.nbrSmartMeters = nbrSmartMeters;
     }
 
-    public boolean isMeterPayloadBatch() {
-        return meterPayloadBatch;
-    }
-
-    public void setMeterPayloadBatch(boolean batch) {
-        this.meterPayloadBatch = batch;
-    }
-
-    public int getMeterPayloadBatchSize() {
-        return meterPayloadBatchSize;
-    }
-
-    public void setMeterPayloadBatchSize(int batchSize) {
-        this.meterPayloadBatchSize = batchSize;
-    }
-
-    public float getMeterPayloadBatchRandomness() {
-        return meterPayloadBatchRandomness;
-    }
-
-    public void setMeterPayloadBatchRandomness(float batchRandomness) {
-        this.meterPayloadBatchRandomness = batchRandomness;
-    }
 
     public void setMdmsBatch(boolean mdmsBatch) {
         this.mdmsBatch = mdmsBatch;
