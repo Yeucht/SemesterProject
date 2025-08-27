@@ -86,7 +86,7 @@
     },
     {
       "type": "timeseries",
-      "title": "Insert rate (/s)",
+      "title": "Insert rate - Springboot side (/s)",
       "datasource": "Prometheus",
       "targets": [
         { "refId": "A", "expr": "rate(spservice_inserted_so_far{instance=~\"$instance\"}[$__rate_interval])", "legendFormat": "{{instance}}" }

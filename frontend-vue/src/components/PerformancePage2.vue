@@ -66,13 +66,14 @@ const dashboards = [
   { uid: 'sp-jvm', title: 'JVM' },
   { uid: 'sp-db', title: 'DB (Hikari)' },
   { uid: 'sp-http', title: 'HTTP' },
-  { uid: 'sp-host', title: 'Host/System' }
+  { uid: 'sp-host', title: 'Host/System' },
+  { uid: 'sp-questdb', title: 'QuestDB' }
 ]
 
 const selectedUid = ref(dashboards[0].uid)
 const instanceVar = ref('All') // sera passé en ?var-instance=...
 const poolVar = ref('All')     // ?var-pool=...
-const defaultRange = ref('now-1h')
+const defaultRange = ref('now-15m')
 const refreshEvery = ref('5s')
 const cacheBust = ref(Date.now())
 
@@ -89,7 +90,8 @@ const dashboardUrl = computed(() => {
     'sp-jvm': 'sp-jvm',
     'sp-db': 'sp-db',
     'sp-http': 'sp-http',
-    'sp-host': 'sp-host'
+    'sp-host': 'sp-host',
+    'sp-questdb': 'sp-questdb'
   }[selectedUid.value] || 'sp'
 
   const params = new URLSearchParams({

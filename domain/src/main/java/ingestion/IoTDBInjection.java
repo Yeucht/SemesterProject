@@ -7,6 +7,8 @@ import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.session.pool.SessionPool;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Arrays;
 
@@ -18,20 +20,22 @@ import java.util.Arrays;
 public class IoTDBInjection extends Injection {
     private static final String STORAGE_GROUP = "root.smart_meter";
     private final IoTDBManager dbManager;
+    final int buffer;
 
     public IoTDBInjection(SimulationConfig config) {
         super(config);
         this.dbManager = new IoTDBManager(config);
+        buffer = this.config.getMdmsBatchSize();
     }
 
     @Override
-    public void insertData(List<DataPacket> packet) {
-        /*SessionPool pool = dbManager.getSessionPool();
-        String deviceId = STORAGE_GROUP + ".meter_" + packet.getAuthSerialNumber();
-        long timestamp = packet.getReceivedTime();
+    public void insertData(List<DataPacket> packets) {
+        if (packets == null || packets.isEmpty()) return;
 
-        // Liste statique des noms de colonnes, exactement comme dans QuestDBInjection
-        List<String> measurements = Arrays.asList(
+        final SessionPool pool = dbManager.getSessionPool();
+
+        // Colonnes & types (identiques à QuestDBInjection + received_time)
+        final List<String> MEASUREMENTS = Arrays.asList(
                 "auth_user",
                 "auth_serial_number",
                 "auth_digest",
@@ -43,6 +47,7 @@ public class IoTDBInjection extends Injection {
                 "master_unit_owner_id",
                 "master_unit_type",
                 "address",
+                "received_time",
                 "connection_cause",
                 "sequence",
                 "status",
@@ -50,8 +55,7 @@ public class IoTDBInjection extends Injection {
                 "payload"
         );
 
-        // Types correspondants : TEXT pour les symboles, BOOLEAN/INT64/DOUBLE pour le reste
-        List<TSDataType> types = Arrays.asList(
+        final List<TSDataType> TYPES = Arrays.asList(
                 TSDataType.TEXT,    // auth_user
                 TSDataType.TEXT,    // auth_serial_number
                 TSDataType.TEXT,    // auth_digest
@@ -63,6 +67,7 @@ public class IoTDBInjection extends Injection {
                 TSDataType.TEXT,    // master_unit_owner_id
                 TSDataType.TEXT,    // master_unit_type
                 TSDataType.TEXT,    // address
+                TSDataType.INT64,   // received_time
                 TSDataType.INT64,   // connection_cause
                 TSDataType.INT64,   // sequence
                 TSDataType.INT64,   // status
@@ -70,49 +75,90 @@ public class IoTDBInjection extends Injection {
                 TSDataType.DOUBLE   // payload
         );
 
+        // Références immuables réutilisées (IoTDB recopie côté serveur)
+        final List<String> SHARED_MEASUREMENTS = Collections.unmodifiableList(MEASUREMENTS);
+        final List<TSDataType> SHARED_TYPES   = Collections.unmodifiableList(TYPES);
+
+        // Buffers de batch
+        final List<String> deviceIds = new ArrayList<>(buffer);
+        final List<Long>   times     = new ArrayList<>(buffer);
+        final List<List<String>>  measurementsList = new ArrayList<>(buffer);
+        final List<List<TSDataType>> typesList     = new ArrayList<>(buffer);
+        final List<List<Object>> valuesList        = new ArrayList<>(buffer);
+
+        long totalRows = 0L;
+        final long start = System.currentTimeMillis();
+
         try {
-            MeterData data = packet.getMeteringData();
-            long seq = data.getSequence();
-            long status = data.getStatus();
-            long version = data.getVersion();
-            for (Integer payloadValue : data.getPayload()) {
-                List<Object> values = Arrays.asList(
-                        packet.getAuthUser(),
-                        packet.getAuthSerialNumber(),
-                        packet.getAuthDigest(),
-                        packet.isAuthenticated(),
-                        packet.isMessageBrokerJob(),
-                        packet.getArchiverConnectionId(),
-                        packet.getCacheFileName(),
-                        packet.getMasterUnitNumber(),
-                        packet.getMasterUnitOwnerId(),
-                        packet.getMasterUnitType(),
-                        data.getAddress(),
-                        (long) packet.getConnectionCause(),
-                        seq,
-                        status,
-                        version,
-                        payloadValue.doubleValue()
-                );
+            for (DataPacket packet : packets) {
+                if (packet == null) continue;
+                final String deviceId = STORAGE_GROUP + ".meter_" + packet.getAuthSerialNumber();
+                final List<MeterData> list = packet.getMeteringData();
+                if (list == null) continue;
 
-                // Envoi de la « ligne » IoTDB
-                pool.insertRecord(
-                        deviceId,
-                        timestamp,
-                        measurements,
-                        types,
-                        values
-                );
+                for (MeterData data : list) {
+                    if (data == null || data.getPayload() == null) continue;
 
+                    for (Number v : data.getPayload()) {
+                        if (v == null) continue;
+
+                        // Timestamp de la ligne (équivalent QuestDB .atNow())
+                        final long ts = System.currentTimeMillis();
+
+                        // Valeurs alignées sur MEASUREMENTS
+                        final List<Object> values = Arrays.asList(
+                                nz(packet.getAuthUser()),
+                                nz(packet.getAuthSerialNumber()),
+                                nz(packet.getAuthDigest()),
+                                packet.isAuthenticated(),
+                                packet.isMessageBrokerJob(),
+                                nz(packet.getArchiverConnectionId()),
+                                nz(packet.getCacheFileName()),
+                                nz(packet.getMasterUnitNumber()),
+                                nz(packet.getMasterUnitOwnerId()),
+                                nz(packet.getMasterUnitType()),
+                                nz(data.getAddress()),
+                                packet.getReceivedTime(),
+                                (long) packet.getConnectionCause(),
+                                (long) data.getSequence(),
+                                (long) data.getStatus(),
+                                (long) data.getVersion(),
+                                v.doubleValue()
+                        );
+
+                        deviceIds.add(deviceId);
+                        times.add(ts);
+                        measurementsList.add(SHARED_MEASUREMENTS);
+                        typesList.add(SHARED_TYPES);
+                        valuesList.add(values);
+                        totalRows++;
+
+                        if (deviceIds.size() >= buffer) {
+                            pool.insertRecords(deviceIds, times, measurementsList, typesList, valuesList);
+                            deviceIds.clear();
+                            times.clear();
+                            measurementsList.clear();
+                            typesList.clear();
+                            valuesList.clear();
+                        }
+                    }
+                }
             }
-            System.out.println("Ingested DataPacket to IoTDB in " +
-                    (System.currentTimeMillis() - timestamp) + " ms");
 
+            // Flush final
+            if (!deviceIds.isEmpty()) {
+                pool.insertRecords(deviceIds, times, measurementsList, typesList, valuesList);
+            }
 
+            System.out.println("Ingested " + totalRows + " row(s) to IoTDB in "
+                    + (System.currentTimeMillis() - start) + " ms");
         } catch (IoTDBConnectionException | StatementExecutionException e) {
-            System.err.println("Error during IoTDB data insertion: " + e.getMessage());
+            System.err.println("Error during IoTDB batch insertion: " + e.getMessage());
             e.printStackTrace();
         }
-        */
     }
+
+    // petit util pour éviter les null TEXT
+    private static String nz(String s) { return s == null ? "" : s; }
+
 }

@@ -1,0 +1,143 @@
+{
+  "title": "SP — QuestDB (Prometheus)",
+  "uid": "sp-questdb",
+  "tags": ["sp","db","questdb"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "editable": true,
+  "refresh": "5s",
+  "time": { "from": "now-1h", "to": "now" },
+  "links": [
+    { "type": "dashboards", "asDropdown": true, "title": "SP Dashboards", "tags": ["sp"], "includeVars": true, "keepTime": true }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "instance",
+        "type": "query",
+        "label": "QuestDB instance",
+        "datasource": "Prometheus",
+        "includeAll": true,
+        "refresh": 2,
+        "query": "label_values(questdb_json_queries_total, instance)"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Ingestion — rows/sec",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "rate(questdb_committed_rows_total{instance=~\"$instance\"}[$__rate_interval])", "legendFormat": "committed" },
+        { "refId": "B", "expr": "rate(questdb_physically_written_rows_total{instance=~\"$instance\"}[$__rate_interval])", "legendFormat": "physically_written" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "ops" } },
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 }
+    },
+    {
+      "type": "stat",
+      "title": "Write amplification",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "clamp_min(sum(rate(questdb_physically_written_rows_total{instance=~\"$instance\"}[$__rate_interval])) / sum(rate(questdb_committed_rows_total{instance=~\"$instance\"}[$__rate_interval])), 0)"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "ratio", "decimals": 2 }, "overrides": [] },
+      "gridPos": { "x": 12, "y": 0, "w": 6, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "WAL lag (txn seq lag)",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "(questdb_wal_apply_seq_txn{instance=~\"$instance\"} - questdb_wal_apply_writer_txn{instance=~\"$instance\"})\n", "legendFormat": "{{instance}}" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "none", "min": 0 } },
+      "gridPos": { "x": 18, "y": 0, "w": 6, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Query throughput (/s)",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "rate(questdb_pg_wire_queries_completed_total{instance=~\"$instance\"}[$__rate_interval])", "legendFormat": "PGWire" },
+        { "refId": "B", "expr": "rate(questdb_json_queries_completed_total{instance=~\"$instance\"}[$__rate_interval])", "legendFormat": "REST JSON" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "ops" } },
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Connections (current)",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "questdb_pg_wire_connections{instance=~\"$instance\"}", "legendFormat": "PGWire" },
+        { "refId": "B", "expr": "questdb_line_tcp_connections{instance=~\"$instance\"}", "legendFormat": "ILP TCP" },
+        { "refId": "C", "expr": "questdb_http_connections{instance=~\"$instance\"}", "legendFormat": "HTTP" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short", "min": 0 } },
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Errors (/s)",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "rate(questdb_unhandled_errors_total{instance=~\"$instance\"}[$__rate_interval])", "legendFormat": "unhandled" },
+        { "refId": "B", "expr": "rate(questdb_pg_wire_errors_total{instance=~\"$instance\"}[$__rate_interval])", "legendFormat": "pg_wire" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "ops", "min": 0 } },
+      "gridPos": { "x": 0, "y": 16, "w": 8, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Cache hit ratio (REST JSON)",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(questdb_json_queries_cache_hits_total{instance=~\"$instance\"}[$__rate_interval])) / (sum(rate(questdb_json_queries_cache_hits_total{instance=~\"$instance\"}[$__rate_interval])) + sum(rate(questdb_json_queries_cache_misses_total{instance=~\"$instance\"}[$__rate_interval])))"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "percentunit", "min": 0, "max": 1 } },
+      "gridPos": { "x": 8, "y": 16, "w": 8, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "JVM & RSS memory",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "questdb_memory_rss{instance=~\"$instance\"}", "legendFormat": "RSS" },
+        { "refId": "B", "expr": "questdb_memory_jvm_total{instance=~\"$instance\"} - questdb_memory_jvm_free{instance=~\"$instance\"}", "legendFormat": "JVM heap used" },
+        { "refId": "C", "expr": "questdb_memory_jvm_max{instance=~\"$instance\"}", "legendFormat": "JVM max" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "bytes", "min": 0 } },
+      "gridPos": { "x": 16, "y": 16, "w": 8, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "GC time (major/minor) — sec/s",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "rate(questdb_jvm_major_gc_time_total{instance=~\"$instance\"}[$__rate_interval]) / 1000", "legendFormat": "major" },
+        { "refId": "B", "expr": "rate(questdb_jvm_minor_gc_time_total{instance=~\"$instance\"}[$__rate_interval]) / 1000", "legendFormat": "minor" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "gridPos": { "x": 0, "y": 24, "w": 12, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "O3 commits (/s)",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "rate(questdb_o3_commits_total{instance=~\"$instance\"}[$__rate_interval])", "legendFormat": "o3_commits" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "ops" } },
+      "gridPos": { "x": 12, "y": 24, "w": 12, "h": 8 }
+    }
+  ]
+}
