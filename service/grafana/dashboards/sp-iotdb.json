@@ -1,0 +1,291 @@
+{
+  "title": "SP — IoTDB",
+  "uid": "sp-iotdb",
+  "tags": ["sp","db","iotdb"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 4,
+  "editable": true,
+  "refresh": "5s",
+  "time": { "from": "now-1h", "to": "now" },
+  "links": [
+    { "type": "dashboards", "asDropdown": true, "title": "SP Dashboards", "tags": ["sp"], "includeVars": true, "keepTime": true }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "instance",
+        "type": "query",
+        "label": "IoTDB instance",
+        "datasource": "Prometheus",
+        "includeAll": true,
+        "refresh": 2,
+        "query": "label_values(file_size, instance)"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "CPU usage — modules",
+      "description": "Vue fonctionnelle: chaque sous-système (QUERY, STORAGE, CONSENSUS, ...)",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "sum by (module, instance) (module_cpu_usage{instance=~\"$instance\"})", "legendFormat": "{{module}}" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "percentunit", "min": 0 } },
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 7 }
+    },
+    {
+      "type": "timeseries",
+      "title": "CPU usage — thread pools",
+      "description": "Vue infra: chaque pool de threads Java (QUERY_SENTINEL, flush, RPC, ...)",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "sum by (pool, instance) (pool_cpu_usage{instance=~\"$instance\"})", "legendFormat": "{{pool}}" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "percentunit", "min": 0 } },
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 7 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Thread pools — waiting tasks",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "thread_pool_waiting_task_count{pool_name=\"org.apache.iotdb.threadpool:type=Timed-Flush-Seq-Memtable\",instance=~\"$instance\"}", "legendFormat": "Timed-Flush-Seq-Memtable" },
+        { "refId": "B", "expr": "thread_pool_waiting_task_count{pool_name=\"org.apache.iotdb.threadpool:type=IoTConsensusRPC-Processor\",instance=~\"$instance\"}", "legendFormat": "IoTConsensusRPC-Processor" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short", "min": 0 } },
+      "gridPos": { "x": 0, "y": 7, "w": 12, "h": 7 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Thrift connections",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "thrift_connections{instance=~\"$instance\"}", "legendFormat": "{{name}}" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short", "min": 0 } },
+      "gridPos": { "x": 12, "y": 7, "w": 12, "h": 7 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Query throughput (/s) — par stage",
+      "description": "À partir des counters *_seconds_count",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "sum by (instance,stage) (rate(query_execution_seconds_count{instance=~\"$instance\"}[$__rate_interval]))", "legendFormat": "{{stage}}" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "ops", "min": 0 } },
+      "gridPos": { "x": 0, "y": 14, "w": 12, "h": 7 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Query latency avg (s) — par stage",
+      "description": "Moyenne = sum(rate(sum))/sum(rate(count))",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "sum by (instance,stage) (rate(query_execution_seconds_sum{instance=~\"$instance\"}[$__rate_interval])) / sum by (instance,stage) (rate(query_execution_seconds_count{instance=~\"$instance\"}[$__rate_interval]))", "legendFormat": "{{stage}}" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s", "min": 0 } },
+      "gridPos": { "x": 12, "y": 14, "w": 12, "h": 7 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Query latency — p50/p99 (par stage)",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "query_execution_seconds{quantile=\"0.5\",instance=~\"$instance\"}", "legendFormat": "p50 {{stage}}" },
+        { "refId": "B", "expr": "query_execution_seconds{quantile=\"0.99\",instance=~\"$instance\"}", "legendFormat": "p99 {{stage}}" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s", "min": 0 } },
+      "gridPos": { "x": 0, "y": 21, "w": 12, "h": 7 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Logs — ERROR/WARN/INFO (/s)",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "rate(logback_events_total{level=\"error\",instance=~\"$instance\"}[$__rate_interval])", "legendFormat": "error" },
+        { "refId": "B", "expr": "rate(logback_events_total{level=\"warn\",instance=~\"$instance\"}[$__rate_interval])", "legendFormat": "warn" },
+        { "refId": "C", "expr": "rate(logback_events_total{level=\"info\",instance=~\"$instance\"}[$__rate_interval])", "legendFormat": "info" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "ops", "min": 0 } },
+      "gridPos": { "x": 12, "y": 21, "w": 12, "h": 7 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Disk usage — TsFile & WAL (bytes)",
+      "description": "inner-seq-temp, inner-unseq-temp, cross-temp, mods, wal",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "file_size{name=\"inner-seq-temp\",instance=~\"$instance\"}", "legendFormat": "inner-seq-temp" },
+        { "refId": "B", "expr": "file_size{name=\"inner-unseq-temp\",instance=~\"$instance\"}", "legendFormat": "inner-unseq-temp" },
+        { "refId": "C", "expr": "file_size{name=\"cross-temp\",instance=~\"$instance\"}", "legendFormat": "cross-temp" },
+        { "refId": "D", "expr": "file_size{name=\"mods\",instance=~\"$instance\"}", "legendFormat": "mods" },
+        { "refId": "E", "expr": "file_size{name=\"wal\",instance=~\"$instance\"}", "legendFormat": "wal" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "bytes", "min": 0 } },
+      "gridPos": { "x": 0, "y": 28, "w": 12, "h": 7 }
+    },
+    {
+      "type": "timeseries",
+      "title": "File count — TsFile & WAL",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "file_count{name=\"inner-seq-temp\",instance=~\"$instance\"}", "legendFormat": "inner-seq-temp" },
+        { "refId": "B", "expr": "file_count{name=\"inner-unseq-temp\",instance=~\"$instance\"}", "legendFormat": "inner-unseq-temp" },
+        { "refId": "C", "expr": "file_count{name=\"cross-temp\",instance=~\"$instance\"}", "legendFormat": "cross-temp" },
+        { "refId": "D", "expr": "file_count{name=\"mods\",instance=~\"$instance\"}", "legendFormat": "mods" },
+        { "refId": "E", "expr": "file_count{name=\"wal\",instance=~\"$instance\"}", "legendFormat": "wal" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short", "min": 0 } },
+      "gridPos": { "x": 12, "y": 28, "w": 12, "h": 7 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Flush queue (waiting/running)",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "queue{name=\"flush\",status=\"waiting\",instance=~\"$instance\"}", "legendFormat": "waiting" },
+        { "refId": "B", "expr": "queue{name=\"flush\",status=\"running\",instance=~\"$instance\"}", "legendFormat": "running" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short", "min": 0 } },
+      "gridPos": { "x": 0, "y": 35, "w": 12, "h": 7 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Network — transmitted bytes (iface)",
+      "description": "Filtré sur type=transmit; ajoute eth0/eno1 si dispo",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "transmitted_bytes{type=\"transmit\",instance=~\"$instance\"}", "legendFormat": "{{iface_name}}" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "bytes", "min": 0 } },
+      "gridPos": { "x": 12, "y": 35, "w": 12, "h": 7 }
+    },
+    {
+      "type": "timeseries",
+      "title": "WAL — files",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "file_count{name=\"wal\",instance=~\"$instance\"}", "legendFormat": "wal files" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short", "min": 0 } },
+      "gridPos": { "x": 0, "y": 42, "w": 6, "h": 7 }
+    },
+    {
+      "type": "timeseries",
+      "title": "WAL — size",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "file_size{name=\"wal\",instance=~\"$instance\"}", "legendFormat": "wal size" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "bytes", "min": 0 } },
+      "gridPos": { "x": 6, "y": 42, "w": 6, "h": 7 }
+    },
+    {
+      "type": "timeseries",
+      "title": "WAL serialize — latency (p50/p99)",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "wal_cost_seconds{stage=\"serialize_wal_entry\",type=\"serialize_wal_entry_total\",quantile=\"0.5\",instance=~\"$instance\"}", "legendFormat": "serialize p50" },
+        { "refId": "B", "expr": "wal_cost_seconds{stage=\"serialize_wal_entry\",type=\"serialize_wal_entry_total\",quantile=\"0.99\",instance=~\"$instance\"}", "legendFormat": "serialize p99" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s", "min": 0 } },
+      "gridPos": { "x": 12, "y": 42, "w": 12, "h": 7 }
+    },
+    {
+      "type": "timeseries",
+      "title": "WAL buffer — entries (p50/p99)",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "wal_buffer{name=\"entries_count\",quantile=\"0.5\",instance=~\"$instance\"}", "legendFormat": "entries p50" },
+        { "refId": "B", "expr": "wal_buffer{name=\"entries_count\",quantile=\"0.99\",instance=~\"$instance\"}", "legendFormat": "entries p99" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short", "min": 0 } },
+      "gridPos": { "x": 0, "y": 49, "w": 12, "h": 7 }
+    },
+    {
+      "type": "timeseries",
+      "title": "WAL buffer — used_ratio samples (/s)",
+      "description": "Débit d’échantillonnage des observations (counter → rate)",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "rate(wal_buffer_count{name=\"used_ratio\",instance=~\"$instance\"}[$__rate_interval])", "legendFormat": "used_ratio samples/s" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "ops", "min": 0 } },
+      "gridPos": { "x": 12, "y": 49, "w": 12, "h": 7 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Compaction task selection — level",
+      "description": "Gauge de niveau (pas un débit)",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "compaction_task_selection{name=\"insertion\",instance=~\"$instance\"}", "legendFormat": "selection level" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short", "min": 0 } },
+      "gridPos": { "x": 0, "y": 56, "w": 12, "h": 7 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Insertion compaction — latency (p50/p99)",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "cost_task_seconds{name=\"insertion_compaction\",quantile=\"0.5\",instance=~\"$instance\"}", "legendFormat": "p50" },
+        { "refId": "B", "expr": "cost_task_seconds{name=\"insertion_compaction\",quantile=\"0.99\",instance=~\"$instance\"}", "legendFormat": "p99" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s", "min": 0 } },
+      "gridPos": { "x": 12, "y": 56, "w": 12, "h": 7 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Compaction task selection — latency (p50/p99)",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "compaction_task_selection_cost{name=\"insertion\",quantile=\"0.5\",instance=~\"$instance\"}", "legendFormat": "selection p50" },
+        { "refId": "B", "expr": "compaction_task_selection_cost{name=\"insertion\",quantile=\"0.99\",instance=~\"$instance\"}", "legendFormat": "selection p99" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s", "min": 0 } },
+      "gridPos": { "x": 0, "y": 63, "w": 12, "h": 7 }
+    },
+    {
+      "type": "timeseries",
+      "title": "JVM heap — used/committed/max",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "sum by (instance) (jvm_memory_used_bytes{area=\"heap\",instance=~\"$instance\"})", "legendFormat": "heap used" },
+        { "refId": "B", "expr": "sum by (instance) (jvm_memory_committed_bytes{area=\"heap\",instance=~\"$instance\"})", "legendFormat": "heap committed" },
+        { "refId": "C", "expr": "sum by (instance) (jvm_memory_max_bytes{area=\"heap\",instance=~\"$instance\"})", "legendFormat": "heap max" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "bytes", "min": 0 } },
+      "gridPos": { "x": 12, "y": 63, "w": 12, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "System disk — total/free/available",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "sys_disk_total_space{name=\"system\",instance=~\"$instance\"}", "legendFormat": "total" },
+        { "refId": "B", "expr": "sys_disk_free_space{name=\"system\",instance=~\"$instance\"}", "legendFormat": "free" },
+        { "refId": "C", "expr": "sys_disk_available_space{name=\"system\",instance=~\"$instance\"}", "legendFormat": "available" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "bytes", "min": 0 } },
+      "gridPos": { "x": 0, "y": 71, "w": 12, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "System memory — Used/Available/Buff-Cache/Shared",
+      "datasource": "Prometheus",
+      "targets": [
+        { "refId": "A", "expr": "linux_memory_size{name=\"Used\",instance=~\"$instance\"}", "legendFormat": "used" },
+        { "refId": "B", "expr": "linux_memory_size{name=\"Available\",instance=~\"$instance\"}", "legendFormat": "available" },
+        { "refId": "C", "expr": "linux_memory_size{name=\"Buff/Cache\",instance=~\"$instance\"}", "legendFormat": "buff/cache" },
+        { "refId": "D", "expr": "linux_memory_size{name=\"Shared\",instance=~\"$instance\"}", "legendFormat": "shared" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "bytes", "min": 0 } },
+      "gridPos": { "x": 12, "y": 71, "w": 12, "h": 8 }
+    }
+  ]
+}

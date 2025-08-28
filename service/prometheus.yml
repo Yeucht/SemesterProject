@@ -15,3 +15,8 @@ scrape_configs:
     static_configs:
       - targets: [ "questdb:9003" ]
 
+  - job_name: "iotdb"
+    static_configs:
+      - targets: [ "iotdb:9092" ]
+    scrape_protocols: [ "PrometheusText1.0.0","PrometheusText0.0.4","OpenMetricsText1.0.0" ]
+    fallback_scrape_protocol: PrometheusText0.0.4

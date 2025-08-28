@@ -1,5 +1,5 @@
 {
-  "title": "SP — QuestDB (Prometheus)",
+  "title": "SP — QuestDB",
   "uid": "sp-questdb",
   "tags": ["sp","db","questdb"],
   "timezone": "browser",

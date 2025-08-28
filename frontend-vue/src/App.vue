@@ -32,10 +32,6 @@
         <PerformancePage />
       </div>
 
-      <div v-else-if="currentTab === 'Performances2'">
-        <PerformancePage2 />
-      </div>
-
       <div v-else-if="currentTab === 'Dashboards'">
         <p>Dashboards tab content (à compléter)</p>
       </div>
@@ -52,9 +48,8 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import SimulationPage from './components/SimulationPage.vue'
 import PerformancePage from "./components/PerformancePage.vue";
-import PerformancePage2 from "./components/PerformancePage2.vue";
 
-const tabs = ['Simulation', 'Performances', 'Performances2', 'Dashboards', 'Query']
+const tabs = ['Simulation', 'Performances', 'Dashboards', 'Query']
 const currentTab = ref('Simulation')
 
 const config = ref({
