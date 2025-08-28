@@ -36,7 +36,6 @@ public class SimulationConfig {
 
     public enum DatabaseType {
         IOTDB,
-        INFLUXDB,
         QUESTDB
     }
 
@@ -81,8 +80,8 @@ public class SimulationConfig {
     private String url = "http://sp-service:8080/api/injection/data";
     private boolean clearTablesFlag = false;
     private long retentionWindowMillis = 1000000000; //unused for now
-    private boolean mdmsBatch = false; //unused for now (cache data in mdms)
-    private int mdmsBatchSize = 10; //unused for now
+    private boolean mdmsBatch = false;
+    private int mdmsBatchSize = 10;
 
     public SimulationConfig() {}
 

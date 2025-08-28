@@ -279,7 +279,21 @@
         :x="pop.x" :y="pop.y"
         @close="closePop"
     >
-      <small>No parameters yet.</small>
+      <label class="toggle-center">
+        <input type="checkbox" v-model="local.mdmsBatch" @change="emitUpdate" />
+        Activate buffer
+      </label>
+
+      <label>
+        Buffer size (rows)
+        <input
+            type="number" min="0" step="10"
+            v-model.number="local.mdmsBatchSize"
+            @input="emitUpdate"
+            :style="autoWidth(local.mdmsBatchSize)"
+            :disabled="!local.mdmsBatch"
+        />
+      </label>
     </NodePopover>
 
     <NodePopover v-if="openKey==='db'" title="Database" :x="pop.x" :y="pop.y" minWidth="240px" @close="closePop">

@@ -4,65 +4,154 @@ import config.SimulationConfig;
 import dbmanager.QuestDBManager;
 import io.questdb.client.Sender;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
-public class QuestDBInjection extends Injection {
+public class QuestDBInjection extends Injection implements AutoCloseable {
     private static final String QUESTDB_URL = "jdbc:postgresql://questdb:8812/qdb";
-    private static final String TABLE_NAME = "smart_meter";
-    private QuestDBManager questDBManager;
+    private static final String TABLE_NAME   = "smart_meter";
+
+    private final QuestDBManager questDBManager;
+
+    // Auto-flush cible par lignes (depuis ta config)
+    private final int BATCH_SIZE;
+
+    // Intervalle d’auto-flush (ms) pour plafonner la latence; ajuste si besoin
+    private final int AUTO_FLUSH_INTERVAL_MS = 60000;
+
+    // Un seul Sender partagé, non thread-safe => manipulé par un worker dédié
+    private final Sender sender;
+
+    // File des écritures (les contrôleurs y poussent des jobs)
+    private final BlockingQueue<Consumer<Sender>> queue = new LinkedBlockingQueue<>(100_000);
+    private final Thread worker;
 
     public QuestDBInjection(SimulationConfig config) {
         super(config);
         this.questDBManager = new QuestDBManager(config);
+        this.BATCH_SIZE = config.getMdmsBatchSize();
+
+        // HTTP ILP + auto-flush par lignes & intervalle
+        this.sender = Sender.fromConfig(
+                "http::addr=questdb:9000;"
+                        + "auto_flush=on;"
+                        + "auto_flush_rows=" + BATCH_SIZE + ";"
+                        + "auto_flush_interval=" + AUTO_FLUSH_INTERVAL_MS + ";"
+        );
+
+        // Démarre le worker dédié qui exécute toutes les écritures
+        this.worker = new Thread(this::runWorker, "questdb-writer");
+        this.worker.setDaemon(true);
+        this.worker.start();
     }
 
+    // Worker: regroupe naturellement les jobs + flush sur inactivité (latence bornée)
+    private void runWorker() {
+        try {
+            while (!Thread.currentThread().isInterrupted()) {
+                Consumer<Sender> job = queue.poll(AUTO_FLUSH_INTERVAL_MS, TimeUnit.MILLISECONDS);
+                if (job != null) {
+                    job.accept(sender);
+                    // Draine le plus possible pour profiter du batching
+                    Consumer<Sender> more;
+                    while ((more = queue.poll()) != null) {
+                        more.accept(sender);
+                    }
+                } else {
+                    // Inactif : flush pour garantir une latence max
+                    sender.flush();
+                }
+            }
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+        } finally {
+            try { sender.flush(); } catch (Throwable ignore) {}
+        }
+    }
 
-    // "tcp::addr=questdb:9009; auto_flush_rows=5000;" ajouter avec config (flush rows = batches?)
-    // New method to insert real DataPacket received from controller
+    // Appelée par ton endpoint (compteurs individuels)
+    @Override
     public void insertData(List<DataPacket> packets) {
-        try (Sender sender = Sender.fromConfig("tcp::addr=questdb:9009")) {
+        if (packets == null || packets.isEmpty()) return;
+
+        // Un job = un lot de paquets (évite d’inonder la queue avec une entrée par point)
+        boolean offered = queue.offer(s -> writePackets(s, packets));
+        if (!offered) {
+            // En cas de saturation, fallback synchrone (meilleure robustesse)
+            writePackets(sender, packets);
+        }
+    }
+
+    // Écriture réelle (s’exécute sur le thread du worker)
+    private void writePackets(Sender s, List<DataPacket> packets) {
+        try {
             for (DataPacket packet : packets) {
+                if (packet == null) continue;
                 List<MeterData> list = packet.getMeteringData();
                 if (list == null) continue;
 
                 for (MeterData data : list) {
-                    if (data.getPayload() == null) continue;
-                    for (Number v : data.getPayload()) {
-                        sender
-                                .table(TABLE_NAME)
-                                // 1) Symbols (tags)
-                                .symbol("auth_user",             packet.getAuthUser())
-                                .symbol("auth_serial_number",    packet.getAuthSerialNumber())
-                                .symbol("auth_digest",           packet.getAuthDigest())
-                                .symbol("is_authenticated",      String.valueOf(packet.isAuthenticated()))
-                                .symbol("is_message_broker_job", String.valueOf(packet.isMessageBrokerJob()))
-                                .symbol("archiver_connection_id", packet.getArchiverConnectionId())
-                                .symbol("cache_file_name",        packet.getCacheFileName())
-                                .symbol("master_unit_number",     packet.getMasterUnitNumber())
-                                .symbol("master_unit_owner_id",   packet.getMasterUnitOwnerId())
-                                .symbol("master_unit_type",       packet.getMasterUnitType())
-                                .symbol("address",                data.getAddress())
+                    if (data == null || data.getPayload() == null) continue;
 
-                                // 2) Numeric columns
+                    for (Number v : data.getPayload()) {
+                        if (v == null) continue;
+
+                        s.table(TABLE_NAME)
+                                // Symbols obligatoires (jamais null → nz pour vide si besoin)
+                                .symbol("auth_user",               nz(packet.getAuthUser()))
+                                .symbol("auth_serial_number",      nz(packet.getAuthSerialNumber()))
+                                .symbol("auth_digest",             nz(packet.getAuthDigest()))
+                                .symbol("is_authenticated",        String.valueOf(packet.isAuthenticated()))
+                                .symbol("is_message_broker_job",   String.valueOf(packet.isMessageBrokerJob()))
+
+                        // Symbols optionnels → uniquement si non-null (évite NPE & garde NULL)
+                        .symbol("archiver_connection_id", nz(packet.getArchiverConnectionId()))
+                        .symbol("cache_file_name",        nz(packet.getCacheFileName()))
+                        .symbol("master_unit_number",     nz(packet.getMasterUnitNumber()))
+                        .symbol("master_unit_owner_id",   nz(packet.getMasterUnitOwnerId()))
+                        .symbol("master_unit_type",       nz(packet.getMasterUnitType()))
+                        .symbol("address",                nz(data.getAddress()))
+
                                 .longColumn("received_time",    packet.getReceivedTime())
                                 .longColumn("connection_cause", packet.getConnectionCause())
                                 .longColumn("sequence",         data.getSequence())
                                 .longColumn("status",           data.getStatus())
                                 .longColumn("version",          data.getVersion())
                                 .doubleColumn("payload",        v.doubleValue())
-
-                                // 3) finalize row
-                                .atNow();
+                                .atNow(); // timestamp ligne (équivalent .atNow() TCP)
                     }
                 }
             }
-            sender.flush();
-            System.out.println("Ingested " + packets.size() + " DataPacket(s) to QuestDB");
         } catch (Exception e) {
+            // On loggue sans interrompre le worker
             e.printStackTrace();
         }
     }
 
+    private static void addSymbolIfNotNull(Sender s, String name, String value) {
+        if (value != null) s.symbol(name, value);
+    }
+    private static String nz(String s) { return s == null ? "" : s; }
+
+    // Optionnel: flush manuel si tu veux forcer la durabilité à un moment précis
+    public void flush() {
+        try { sender.flush(); } catch (Exception e) { e.printStackTrace(); }
+    }
 
 
+    // Arrêt propre : stoppe le worker, flush & ferme le sender
+    @Override
+    public void close() {
+        worker.interrupt();
+        try { worker.join(1000); } catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
+        try { sender.flush(); } catch (Throwable ignore) {}
+        try { sender.close(); } catch (Throwable ignore) {}
+    }
 }

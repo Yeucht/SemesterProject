@@ -1,6 +1,7 @@
 package dbmanager;
 
 import config.SimulationConfig;
+import jakarta.annotation.PostConstruct;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -24,6 +25,23 @@ public class QuestDBManager extends DBManager {
         this.password = System.getenv().getOrDefault("QUESTDB_PASSWORD", "quest");
     }
 
+    @PostConstruct
+    public void createTableIfNotExist() {
+
+
+        try (Connection conn = DriverManager.getConnection(url, user, password);
+             Statement stmt  = conn.createStatement();
+             Statement addStmt = conn.createStatement()) {
+
+            String recreateTable = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + ";";
+            addStmt.executeUpdate(recreateTable);
+            System.out.println("Created table smart_meter.");
+
+        }catch (SQLException e) {
+            System.out.println("Couldn't create table: " + e.getMessage());
+        }
+    }
+
     @Override
     public boolean clearTables() {
 
@@ -37,6 +55,8 @@ public class QuestDBManager extends DBManager {
                 "SELECT table_name " +
                 "FROM information_schema.tables " +
                 "WHERE table_schema = 'public'";
+
+
 
         try (Connection conn = DriverManager.getConnection(url, user, password);
              Statement stmt  = conn.createStatement();
@@ -56,12 +76,14 @@ public class QuestDBManager extends DBManager {
                 }
             }
 
-            System.out.println("All tables dropped successfully.");
+            createTableIfNotExist();
+
+            System.out.println("All tables dropped successfully. Recreated smart_meter.");
             return true;
 
         } catch (SQLException e) {
+            createTableIfNotExist();
             System.err.println("Unable to drop tables: " + e.getMessage());
-            e.printStackTrace();
             return false;
         }
     }
@@ -79,7 +101,7 @@ public class QuestDBManager extends DBManager {
                 count = rs.getInt(1);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+
         }
 
         return count;

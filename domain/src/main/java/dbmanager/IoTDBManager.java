@@ -3,7 +3,11 @@ package dbmanager;
 import config.SimulationConfig;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
+import org.apache.iotdb.session.SessionDataSet;
+import org.apache.iotdb.session.pool.SessionDataSetWrapper;
 import org.apache.iotdb.session.pool.SessionPool;
+import org.apache.iotdb.tsfile.read.common.Field;
+import org.apache.iotdb.tsfile.read.common.RowRecord;
 
 /**
  * Manager pour IoTDB alimenté par Config et variables d’environnement.
@@ -61,6 +65,29 @@ public class IoTDBManager extends DBManager {
     }
 
     @Override
-    public int getRowCount() { return 1;}
+    public int getRowCount() {
+        // On compte les points écrits sur la mesure "payload" pour tous les devices
+        // (tu peux remplacer par "received_time" si tu préfères).
+        final String sql = "SELECT COUNT(payload) FROM " + STORAGE_GROUP + ".**";
+
+        long total = 0L;
+        try (SessionDataSetWrapper rs = sessionPool.executeQueryStatement(sql)) {
+            while (rs.hasNext()) {
+                RowRecord row = rs.next();
+                // L’agrégat renvoie une ligne dont chaque Field est le count d’un timeseries
+                for (Field f : row.getFields()) {
+                    if (f != null) {
+                        total += f.getLongV(); // COUNT(...) est de type long
+                    }
+                }
+            }
+        } catch (IoTDBConnectionException | StatementExecutionException e) {
+            e.printStackTrace();
+        }
+
+        // Parité de signature avec ta méthode QuestDB (int).
+        // Attention au dépassement si tu as >2.1 milliards de lignes.
+        return (total > Integer.MAX_VALUE) ? Integer.MAX_VALUE : (int) total;
+    }
 
 }
