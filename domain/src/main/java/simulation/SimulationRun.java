@@ -3,6 +3,7 @@ package simulation;
 import config.SimulationConfig;
 import jakarta.persistence.*;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,9 +20,10 @@ public class SimulationRun {
 
     private Instant startedAt;
     private Instant endedAt;
-    private long totalInserted;
+    private long metricPointsInserted;
     private double avgInsertRate;
-    private long finalDbSizeBytes;
+    private long finalDbSize;
+    private long originDbSize;
 
     @OneToMany(mappedBy = "run", cascade = CascadeType.ALL)
     private List<MetricPoint> metrics = new ArrayList<>();
@@ -30,9 +32,9 @@ public class SimulationRun {
         this.config = config;
         this.startedAt = Instant.now();
         this.endedAt = null;
-        this.totalInserted = 0;
+        this.metricPointsInserted = 0;
         this.avgInsertRate = 0;
-        this.finalDbSizeBytes = 0;
+        this.finalDbSize = 0;
     }
 
     public SimulationRun(){}
@@ -75,12 +77,12 @@ public class SimulationRun {
         this.endedAt = endedAt;
     }
 
-    public long getTotalInserted() {
+    public long getMetricPointsInserted() {
         return metrics.size();
     }
 
-    public void setTotalInserted(long totalInserted) {
-        this.totalInserted = totalInserted;
+    public void setMetricPointsInserted(long totalInserted) {
+        this.metricPointsInserted = totalInserted;
     }
 
     public double getAvgInsertRate() {
@@ -88,15 +90,15 @@ public class SimulationRun {
     }
 
     public void setAvgInsertRate(double avgInsertRate) {
-        this.avgInsertRate = avgInsertRate;
+        this.avgInsertRate = ratePerSecond(finalDbSize-originDbSize, startedAt, endedAt);
     }
 
-    public long getFinalDbSizeBytes() {
-        return finalDbSizeBytes;
+    public long getFinalDbSize() {
+        return finalDbSize;
     }
 
-    public void setFinalDbSizeBytes(long finalDbSizeBytes) {
-        this.finalDbSizeBytes = finalDbSizeBytes;
+    public void setFinalDbSize(long finalDbSizeBytes) {
+        this.finalDbSize = finalDbSizeBytes;
     }
 
     public List<MetricPoint> getMetrics() {
@@ -106,4 +108,19 @@ public class SimulationRun {
     public void setMetrics(List<MetricPoint> metrics) {
         this.metrics = metrics;
     }
+
+    public void setOriginDbSize(int originDBSize) {
+        this.originDbSize = originDBSize;
+    }
+
+    public long getOriginDbSize() {
+        return originDbSize;
+    }
+
+    static double ratePerSecond(long count, Instant start, Instant end) {
+        double seconds = Duration.between(start, end).toNanos() / 1_000_000_000.0; // secondes fractionnaires
+        if (seconds <= 0) return 0.0; // ou Double.NaN selon ton choix
+        return count / seconds; // req/s (ou items/s)
+    }
+
 }

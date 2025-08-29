@@ -17,8 +17,6 @@ public class DBManagerFactory {
         switch (dbtype) {
             case IOTDB:
                 return new IoTDBManager(config);
-            case INFLUXDB:
-                return new InfluxDBManager(config);
             case QUESTDB:
                 return new QuestDBManager(config);
             default: throw new IllegalArgumentException("Unsupported database type: " + dbtype);

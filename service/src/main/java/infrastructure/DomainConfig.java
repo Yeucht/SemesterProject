@@ -56,9 +56,10 @@ public class DomainConfig {
             PrometheusService prometheusService,
             ConfigService configService,
             MeterRegistry meterRegistry,
-            Counter counter
+            Counter counter,
+            DBManagerService dbManagerService
     ) {
-        return new MetricsService(simulationRepository, configRepository, configService, prometheusService, meterRegistry, counter);
+        return new MetricsService(simulationRepository, configRepository, configService, prometheusService, meterRegistry, counter, dbManagerService);
     }
 
     @Bean
