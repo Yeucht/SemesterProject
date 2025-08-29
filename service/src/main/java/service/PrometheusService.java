@@ -23,26 +23,22 @@ public class PrometheusService {
     private final String step = "10s"; //définit la fenêtre de avg/
 
     public Map<Instant, Double> queryTimeSeries(String promql, Instant start, Instant end) {
-        // 1) Choisir un step cohérent avec le scrape (ex: >=15s). Tu peux aussi le passer en paramètre.
 
-
-        // 2) Construire l'URI SANS pré-encoder la requête
         URI uri = UriComponentsBuilder
                 .fromHttpUrl(prometheusBaseUrl)
                 .path("/api/v1/query_range")
-                .queryParam("query", promql)                // <-- pas d'URLEncoder ici
-                .queryParam("start", start.toString())      // RFC3339 OK
+                .queryParam("query", promql)
+                .queryParam("start", start.toString())
                 .queryParam("end", end.toString())
                 .queryParam("step", step)
                 .build()
-                .encode()                                   // encode une seule fois et proprement
+                .encode()
                 .toUri();
 
         ResponseEntity<JsonNode> response = restTemplate.getForEntity(uri, JsonNode.class);
-        Map<Instant, Double> series = new TreeMap<>();      // timestamps triés
+        Map<Instant, Double> series = new TreeMap<>();
 
         if (!response.getStatusCode().is2xxSuccessful()) {
-            // à toi de voir : throw, log, etc.
             return series;
         }
 

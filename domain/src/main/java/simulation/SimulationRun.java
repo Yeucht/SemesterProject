@@ -90,6 +90,10 @@ public class SimulationRun {
     }
 
     public void setAvgInsertRate(double avgInsertRate) {
+        this.avgInsertRate = avgInsertRate;
+    }
+
+    public void setAvgInsertRateRelative() {
         this.avgInsertRate = ratePerSecond(finalDbSize-originDbSize, startedAt, endedAt);
     }
 

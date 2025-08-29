@@ -13,11 +13,11 @@ import java.util.List;
 import java.util.Arrays;
 
 /**
- * Injection implementation pour IoTDB, calquée sur votre QuestDBInjection :
+ * Injection implementation pour IoTDB
  * - On crée automatiquement les time‑series grâce à schema_auto_create=true
  * - Pour chaque payload, on envoie une « ligne » avec TOUTES les colonnes
  */
-public class IoTDBInjection extends Injection {
+public class IoTDBInjection extends Injection implements AutoCloseable  {
     private static final String STORAGE_GROUP = "root.smart_meter";
     private final IoTDBManager dbManager;
     private final SessionPool pool;
@@ -50,7 +50,11 @@ public class IoTDBInjection extends Injection {
     public IoTDBInjection(SimulationConfig config) {
         super(config);
         this.dbManager = new IoTDBManager(config);
-        this.BATCH_SIZE = config.getMdmsBatchSize();
+        if (config.getMdmsBatch()){
+            this.BATCH_SIZE = config.getMdmsBatchSize();
+        }else{
+            this.BATCH_SIZE = 1;
+        }
         this.pool = this.dbManager.getSessionPool();
 
         // init buffers avec capacité = BATCH_SIZE
@@ -157,11 +161,9 @@ public class IoTDBInjection extends Injection {
         }
     }
 
-    //Should add security for closing sessionPool
+    @Override
     public void close() {
-        // Assure qu’on n’oublie rien en mémoire
         flush();
-        // Le SessionPool est en général géré ailleurs (lifecycle du dbManager)
     }
 
     private static String nz(String s) { return s == null ? "" : s; }

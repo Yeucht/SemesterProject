@@ -36,15 +36,28 @@ public class QuestDBInjection extends Injection implements AutoCloseable {
     public QuestDBInjection(SimulationConfig config) {
         super(config);
         this.questDBManager = new QuestDBManager(config);
-        this.BATCH_SIZE = config.getMdmsBatchSize();
+
+        if (config.getMdmsBatch()){
+            this.BATCH_SIZE = config.getMdmsBatchSize();
+            this.sender = Sender.fromConfig(
+                    "http::addr=questdb:9000;"
+                            + "auto_flush=on;"
+                            + "auto_flush_rows=" + BATCH_SIZE + ";"
+                            + "auto_flush_interval=" + AUTO_FLUSH_INTERVAL_MS + ";"
+            );
+
+        }else{
+            this.BATCH_SIZE = 1;
+            this.sender = Sender.fromConfig(
+                    "http::addr=questdb:9000;"
+                    + "auto_flush=on;"
+                    + "auto_flush_rows=" + BATCH_SIZE + ";"
+                    + "auto_flush_interval=" + AUTO_FLUSH_INTERVAL_MS + ";"
+            );
+        }
+
 
         // HTTP ILP + auto-flush par lignes & intervalle
-        this.sender = Sender.fromConfig(
-                "http::addr=questdb:9000;"
-                        + "auto_flush=on;"
-                        + "auto_flush_rows=" + BATCH_SIZE + ";"
-                        + "auto_flush_interval=" + AUTO_FLUSH_INTERVAL_MS + ";"
-        );
 
         // Démarre le worker dédié qui exécute toutes les écritures
         this.worker = new Thread(this::runWorker, "questdb-writer");
