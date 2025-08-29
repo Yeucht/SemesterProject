@@ -20,8 +20,8 @@ public class DomainConfig {
     }
 
     @Bean
-    public ConfigService configService(SimulationConfig config, DBManagerService dbManagerService, InjectionService injectionService, FlaskClient flaskClient) {
-        return new ConfigService(config, dbManagerService, injectionService, flaskClient);
+    public ConfigService configService(SimulationConfig config, DBManagerService dbManagerService, InjectionService injectionService, FlaskClient flaskClient, InvoiceService invoiceService) {
+        return new ConfigService(config, dbManagerService, injectionService, flaskClient, invoiceService);
     }
 
     @Bean
@@ -32,6 +32,11 @@ public class DomainConfig {
     @Bean
     public InjectionService injectionService(SimulationConfig config, Counter counter, DBManagerService dbManagerService) {
         return new InjectionService(config, counter, dbManagerService);
+    }
+
+    @Bean
+    public InvoiceService extractionService(SimulationConfig config, DBManagerService dbManagerService){
+        return new InvoiceService(config, dbManagerService);
     }
 
     @Bean

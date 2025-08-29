@@ -3,7 +3,6 @@ package dbmanager;
 import config.SimulationConfig;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
-import org.apache.iotdb.session.SessionDataSet;
 import org.apache.iotdb.session.pool.SessionDataSetWrapper;
 import org.apache.iotdb.session.pool.SessionPool;
 import org.apache.iotdb.tsfile.read.common.Field;
@@ -31,7 +30,7 @@ public class IoTDBManager extends DBManager {
         this.user = System.getenv().getOrDefault("IOTDB_USER", "root");
         this.password = System.getenv().getOrDefault("IOTDB_PASSWORD", "root");
         int poolSize = Integer.parseInt(
-                System.getenv().getOrDefault("IOTDB_POOL_SIZE", "3")
+                System.getenv().getOrDefault("IOTDB_POOL_SIZE", "5")
         );
         this.sessionPool = new SessionPool(host, port, user, password, poolSize);
 
@@ -89,5 +88,44 @@ public class IoTDBManager extends DBManager {
         // Attention au dépassement si tu as >2.1 milliards de lignes.
         return (total > Integer.MAX_VALUE) ? Integer.MAX_VALUE : (int) total;
     }
+
+    @Override
+    public int getNumberMeters() {
+        // Essai 1 : COUNT DEVICES
+        final String sqlCount = "COUNT DEVICES root.smart_meter.**";
+        try (SessionDataSetWrapper rs = sessionPool.executeQueryStatement(sqlCount)) {
+            if (rs.hasNext()) {
+                RowRecord row = rs.next();
+                // COUNT DEVICES renvoie généralement une seule colonne numérique
+                Field f = row.getFields().get(0);
+                if (f != null) {
+                    long cnt = f.getLongV(); // ou getIntV/getLongV selon version
+                    return (cnt > Integer.MAX_VALUE) ? Integer.MAX_VALUE : (int) cnt;
+                }
+            }
+        } catch (IoTDBConnectionException | StatementExecutionException e) {
+            e.printStackTrace();
+            // on continue vers le fallback
+        }
+
+        // Fallback : SHOW DEVICES et compter les lignes
+        final String sqlShow = "SHOW DEVICES root.smart_meter.**";
+        int count = 0;
+        try (SessionDataSetWrapper rs = sessionPool.executeQueryStatement(sqlShow)) {
+            while (rs.hasNext()) {
+                rs.next();
+                count++;
+            }
+        } catch (IoTDBConnectionException | StatementExecutionException e) {
+            e.printStackTrace();
+        }
+        return count;
+    }
+
+
+    public String getStorageGroup(){
+        return STORAGE_GROUP;
+    }
+
 
 }

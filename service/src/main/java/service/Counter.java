@@ -1,7 +1,5 @@
 package service;
 
-import controller.DBManagerController;
-import simulation.SimulationRepository;
 
 public class Counter {
 

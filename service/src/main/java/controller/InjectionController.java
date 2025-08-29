@@ -1,7 +1,6 @@
 package controller;
 
 import ingestion.DataPacket;
-import ingestion.Injection;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import service.InjectionService;

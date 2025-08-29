@@ -19,12 +19,6 @@
               @send-config="sendConfig"
               @toggle="toggleSimulation"
           />
-          <div class="simulation-controls">
-            <button @click="toggleSimulation">
-              {{ status === 'running' ? 'Stop Simulation' : 'Start Simulation' }}
-            </button>
-            <p class="status" :data-status="status">Status: {{ status }}</p>
-          </div>
         </template>
       </div>
 
@@ -32,8 +26,8 @@
         <PerformancePage />
       </div>
 
-      <div v-else-if="currentTab === 'Dashboards'">
-        <p>Dashboards tab content (à compléter)</p>
+      <div v-else-if="currentTab === 'Invoicing'">
+        <InvoicingPage />
       </div>
 
       <div v-else-if="currentTab === 'Query'">
@@ -48,8 +42,9 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import SimulationPage from './components/SimulationPage.vue'
 import PerformancePage from "./components/PerformancePage.vue";
+import InvoicingPage from "./components/InvoicingPage.vue";
 
-const tabs = ['Simulation', 'Performances', 'Dashboards', 'Query']
+const tabs = ['Simulation', 'Performances', 'Invoicing', 'Query']
 const currentTab = ref('Simulation')
 
 const config = ref({

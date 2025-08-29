@@ -20,4 +20,6 @@ public abstract class DBManager {
     }
 
     public abstract int getRowCount();
+
+    public abstract int getNumberMeters();
 }

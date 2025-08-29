@@ -39,4 +39,7 @@ public class InfluxDBManager extends DBManager {
 
     @Override
     public int getRowCount() { return 1;}
+
+    @Override
+    public int getNumberMeters(){ return 1;}
 }

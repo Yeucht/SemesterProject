@@ -1,19 +1,12 @@
 package service;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-
-import dbmanager.DBManager;
 import jakarta.transaction.Transactional;
-import simulation.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientResponseException;
 
 
 public class SimulationService {
-    // Base URL for Flask simulation service
+
     private static final String FLASK_BASE_URL = "http://sp-simulation:8000";
 
     private final ConfigService configService;

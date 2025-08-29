@@ -11,11 +11,13 @@ public class ConfigService {
     private DBManagerService dbManagerService;
     private InjectionService injectionService;
     private FlaskClient flaskClient;
+    private InvoiceService invoiceService;
 
-    public ConfigService(SimulationConfig config, DBManagerService dbManagerService, InjectionService injectionService, FlaskClient flaskClient) {
+    public ConfigService(SimulationConfig config, DBManagerService dbManagerService, InjectionService injectionService, FlaskClient flaskClient, InvoiceService invoiceService) {
         this.config = config;
         this.dbManagerService = dbManagerService;
         this.injectionService = injectionService;
+        this.invoiceService = invoiceService;
         this.flaskClient = flaskClient;
     }
 

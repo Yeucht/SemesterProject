@@ -3,11 +3,6 @@ package ingestion;
 import config.SimulationConfig;
 import dbmanager.QuestDBManager;
 import io.questdb.client.Sender;
-
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -15,32 +10,30 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 public class QuestDBInjection extends Injection implements AutoCloseable {
-    private static final String QUESTDB_URL = "jdbc:postgresql://questdb:8812/qdb";
+    //private static final String QUESTDB_URL = "jdbc:postgresql://questdb:8812/qdb";
     private static final String TABLE_NAME   = "smart_meter";
-
+    private final String QUESTDB_SENDER_URL;
     private final QuestDBManager questDBManager;
-
-    // Auto-flush cible par lignes (depuis ta config)
     private final int BATCH_SIZE;
-
-    // Intervalle d’auto-flush (ms) pour plafonner la latence; ajuste si besoin
-    private final int AUTO_FLUSH_INTERVAL_MS = 60000;
-
-    // Un seul Sender partagé, non thread-safe => manipulé par un worker dédié
+    private final int AUTO_FLUSH_INTERVAL_MS;
     private final Sender sender;
-
-    // File des écritures (les contrôleurs y poussent des jobs)
     private final BlockingQueue<Consumer<Sender>> queue = new LinkedBlockingQueue<>(100_000);
     private final Thread worker;
 
     public QuestDBInjection(SimulationConfig config) {
         super(config);
         this.questDBManager = new QuestDBManager(config);
+        this.AUTO_FLUSH_INTERVAL_MS = Integer.parseInt(System.getenv().getOrDefault(
+                "QUESTDB_FLUSH_INTERVAL_MS",
+                "6000"
+        ));
+
+        this.QUESTDB_SENDER_URL = System.getenv().getOrDefault("QUESTDB_SENDER_URL", "http::addr=questdb:9000;");
 
         if (config.getMdmsBatch()){
             this.BATCH_SIZE = config.getMdmsBatchSize();
             this.sender = Sender.fromConfig(
-                    "http::addr=questdb:9000;"
+                    QUESTDB_SENDER_URL
                             + "auto_flush=on;"
                             + "auto_flush_rows=" + BATCH_SIZE + ";"
                             + "auto_flush_interval=" + AUTO_FLUSH_INTERVAL_MS + ";"
@@ -49,7 +42,7 @@ public class QuestDBInjection extends Injection implements AutoCloseable {
         }else{
             this.BATCH_SIZE = 1;
             this.sender = Sender.fromConfig(
-                    "http::addr=questdb:9000;"
+                    QUESTDB_SENDER_URL
                     + "auto_flush=on;"
                     + "auto_flush_rows=" + BATCH_SIZE + ";"
                     + "auto_flush_interval=" + AUTO_FLUSH_INTERVAL_MS + ";"

@@ -106,4 +106,29 @@ public class QuestDBManager extends DBManager {
 
         return count;
     }
+
+    @Override
+    public int getNumberMeters() {
+        int count = 0;
+        String sql = "SELECT count(DISTINCT auth_serial_number) FROM " + TABLE_NAME;
+
+        try (Connection conn = DriverManager.getConnection(QUESTDB_URL, "admin", "quest");
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            if (rs.next()) {
+                count = rs.getInt(1);
+            }
+        } catch (Exception e) {
+
+        }
+
+        return count;
+    }
+
+    // QuestDBManager.java
+    public Connection openConnection() throws SQLException {
+        return DriverManager.getConnection(url, user, password);
+    }
+
 }

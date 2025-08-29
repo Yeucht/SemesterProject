@@ -3,7 +3,6 @@ package factories;
 import config.SimulationConfig;
 import config.SimulationConfig.DatabaseType;
 import dbmanager.DBManager;
-import dbmanager.InfluxDBManager;
 import dbmanager.IoTDBManager;
 import dbmanager.QuestDBManager;
 
