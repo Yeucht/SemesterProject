@@ -4,8 +4,7 @@
   "tags": ["sp","overview"],
   "timezone": "browser",
   "schemaVersion": 38,
-  "version": 1,
-  "editable": true,
+  "version": 1,  "editable": true,
   "refresh": "5s",
   "time": { "from": "now-1h", "to": "now" },
   "links": [
