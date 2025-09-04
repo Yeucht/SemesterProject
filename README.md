@@ -9,24 +9,44 @@ A Spring Boot backend coordinates the ingestion, while a Vue.js dashboard allows
 ## Table of Contents
 - [Installation](#installation)
   - [Prerequisites](#prerequisites)
-  - [1. Enable WSL2 (Windows only)](#1-enable-wsl2-windows-only)
+  - [1. Activate the VM](#1-activate-the-vm)
+    - [1.1 Enable WSL2 (Windows only)](#11-enable-wsl2-windows-only)
+    - [1.2 Restart your PC](#12-restart-your-pc)
+    - [1.3 Install the WSL2 kernel](#13-install-the-wsl2-kernel)
   - [2. Install Docker Desktop](#2-install-docker-desktop)
-  - [3. Verify Installation](#3-verify-installation)
-  - [4. Configure Metrics](#4-configure-metrics)
-- [Launching the Containers](#launching-the-containers)
-  - [Web Service (Spring Boot 3.2.0, JDK17)](#web-service-spring-boot-320-jdk17)
-  - [Web Dashboard (Vue.js, Node.js 20)](#web-dashboard-vuejs-nodejs-20)
-  - [Simulation Module (Flask)](#simulation-module-flask)
-  - [QuestDB (v902)](#questdb-v902)
-  - [Apache IoTDB (v132 Standalone)](#apache-iotdb-v132-standalone)
-  - [MySQL Workbench (Optional)](#mysql-workbench-optional)
+    - [2.1 Download Docker Desktop 4.43.2](#21-download-docker-desktop-4432)
+    - [2.2 Run the installer and check “Use WSL2”](#22-run-the-installer-and-check-use-wsl2)
+    - [2.3 Finish the installation](#23-finish-the-installation)
+    - [2.4 Verify Installation](#24-verify-installation)
+    - [2.5 Modify settings](#25-modify-settings)
+  - [3. Launching the containers](#3-launching-the-containers)
+    - [3.1 Web Service (Spring Boot 3.2.0, JDK17) and Performance Tracking](#31-web-service-spring-boot-320-jdk17-and-performance-tracking-prometheus-cadvisor-grafana--all-latest)
+      - [3.1.1 Download repo and prepare path](#311-download-repo-and-prepare-path)
+      - [3.1.2 Build and run](#312-build-and-run)
+    - [3.2 Web Dashboard (Node.js:20-Vue.js)](#32-web-dashboard-nodejs20-vuejs)
+      - [3.2.1 Go to path](#321-go-to-path)
+      - [3.2.2 Build and run](#322-build-and-run)
+    - [3.3 Simulation Module (Flask 3.1.1 on Gunicorn 23.0.0)](#33-simulation-module-flask-311-on-gunicorn-2300)
+      - [3.3.1 Download repo](#331-download-repo)
+      - [3.3.2 Build and run](#332-build-and-run)
+    - [3.4 QuestDB (v9.0.2)](#34-questdb-v902)
+    - [3.5 IoTDB (v1.3.2 Standalone)](#35-iotdb-v132-standalone)
+      - [3.5.1 Prepare configuration](#351-prepare-configuration-again-choose-a-path)
+      - [3.5.2 Edit properties](#352-edit-pathiotdbconfiotdb-datanodeproperties)
+      - [3.5.3 Run IoTDB](#353-run-iotdb)
+    - [3.6 MySQL 8.4](#36-mysql-84)
+    - [3.7 Workbench MySQL (8.0.40) (optional)](#37-workbench-mysql-8040-optional)
+      - [3.7.1 Download Workbench](#371-download-workbench)
+      - [3.7.2 Open a new connection](#372-open-a-new-connection)
 - [Usage](#usage)
-- [Architecture](#architecture)
-  - [Java Backend](#java-backend)
-  - [Frontend (Vue.js)](#frontend-vuejs)
-  - [Databases](#databases)
-- [Extending the Platform](#extending-the-platform)
-- [License](#license)
+  - [Open the dashboard](#open-the-dashboard-at-httplocalhost7000)
+  - [Simulations generate](#simulations-generate)
+  - [The Invoicing page allows](#the-invoicing-page-allows)
+  - [Results storage](#results-are-stored-in-a-relational-database-the-mysql-one-with)
+- [Adding new material](#adding-new-material)
+  - [Adding a new DataBase](#adding-a-new-database)
+  - [Adding a new feature](#adding-a-new-feature)
+
 
 ---
 
@@ -148,14 +168,82 @@ dn_metric_prometheus_reporter_port=9091
 
 3.5.3 Run IoTDB
 ```powershell
-docker run -d --name iotdb --network sp-net
-  -p 6667:6667 -p 8181:8181 -p 5555:5555 -p 9091:9091
-  -v path/iotdb/data:/iotdb/data
-  -v path/iotdb/logs:/iotdb/logs
-  -v path/iotdb/conf/conf:/iotdb/conf
-  apache/iotdb:1.3.2-standalone
+docker run -d --name iotdb --network sp-net -p 6667:6667 -p 8181:8181 -p 5555:5555 -p 9091:9091 -v path/iotdb/data:/iotdb/data -v path/iotdb/logs:/iotdb/logs -v path/iotdb/conf/conf:/iotdb/conf apache/iotdb:1.3.2-standalone
+```
+#### 3.6 MySQL 8.4 
+
+[**Download**](https://dev.mysql.com/downloads/mysql/8.4.html) and Install MySQL 8.4.6 Server LTS
+
+#### 3.7 Workbench MySQL (8.0.40) (optional)
+Workbench works as a DataBase visualizer, so it is optional in the sense that you can use another tool.
+
+3.7.1 [**Download**](https://dev.mysql.com/downloads/workbench/) and Install Workbench
+
+3.7.2 Open a new connection
+```
+Host: localhost
+Port: 3306
+User: root
+Password: root123
 ```
 
+## Usage
+
+### Open the dashboard at http://localhost:7000
+
+<img width="1119" height="701" alt="image" src="https://github.com/user-attachments/assets/3982397b-0f27-4562-92bc-90cbc678127d" />
+
+Configure simulation parameters (HES count, smart meters, send rates, randomness)
+
+Start/stop simulations and monitor system activity
+
+### Simulations generate:
+
+IoT data ingestion into QuestDB and IoTDB
+
+Performance metrics collected by Prometheus
+
+Dashboards automatically provisioned in Grafana
+
+<img width="1114" height="778" alt="image" src="https://github.com/user-attachments/assets/b2981878-c992-420d-8775-7760199af3a3" />
+
+### The Invoicing page allows:
+
+Selection of time window and kWh price
+
+Meter-based billing example
+
+<img width="1139" height="217" alt="image" src="https://github.com/user-attachments/assets/385806b9-82c5-48ec-b5c8-bd25994f503c" />
+
+### Results are stored in a relational database (the MySQL one) with:
+
+simulation_run → metadata for runs
+
+simulation_config → configuration used
+
+metric_point → captured metrics
 
 
+## Adding new material
 
+Here are the main and least actions to take for helping enhancing the project.
+
+### Adding a new DataBase
+
+Implement a DBManager subclass with:
+```
+clearTables()
+getRowCount()
+getNumberMeters()
+```
+Add ingestion/extraction classes
+
+Expose metrics to Prometheus
+
+### Adding a new feature
+
+Extend controllers and services in the backend
+
+Create new Vue components for the frontend
+
+Add Grafana dashboards if needed
