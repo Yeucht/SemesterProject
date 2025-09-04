@@ -1,4 +1,4 @@
-# Scalable IoT Data Benchmarking Platform
+# Scalable IoT Data Benchmarking Tool
 
 This project provides a horizontally scalable simulation and benchmarking platform for high-throughput IoT data injection.  
 It integrates multiple NoSQL databases (QuestDB, Apache IoTDB) and a relational store, with full observability through Prometheus, Grafana, and Cadvisor.  
