@@ -29,13 +29,11 @@
       </label>
     </div>
 
-    <!-- (supprimé l’ancien petit hint global ici) -->
 
     <div class="actions">
       <button @click="fetchInvoice" :disabled="busy">
         {{ busy ? 'Calcul en cours…' : 'Calculer la facture' }}
       </button>
-      <!-- (supprimé l’ancien <span class="meters"> … </span>) -->
     </div>
 
 
@@ -100,7 +98,7 @@ const keyLabels = {
 function formatDate(val) {
   if (!val) return ''
   const d = new Date(val)
-  if (isNaN(d)) return val   // au cas où le backend renvoie déjà un string
+  if (isNaN(d)) return val
   return d.toLocaleString('fr-CH', {
     day: '2-digit',
     month: '2-digit',
@@ -120,7 +118,6 @@ function formatNumber(val, digits = 2) {
 
 // helpers dates (default: now & now-7j)
 function toLocalDatetimeInputValue(d) {
-  // retourne "YYYY-MM-DDTHH:mm" (sans secondes, en local)
   const pad = n => String(n).padStart(2, '0')
   const yyyy = d.getFullYear()
   const mm = pad(d.getMonth() + 1)
@@ -136,14 +133,11 @@ const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
 const startLocal = ref(toLocalDatetimeInputValue(sevenDaysAgo))
 const endLocal   = ref(toLocalDatetimeInputValue(now))
 
-// Convertit la valeur du <input type="datetime-local"> (locale, sans fuseau)
-// en ISO 8601 avec timezone (UTC, suffixe Z), attendu par @DateTimeFormat.ISO.DATE_TIME
 function localInputToISOStringZ(localStr) {
-  // localStr: "YYYY-MM-DDTHH:mm"
   const [datePart, timePart] = localStr.split('T')
   const [y, m, d] = datePart.split('-').map(Number)
   const [h, min] = timePart.split(':').map(Number)
-  const dt = new Date(y, m - 1, d, h + 2, min, 0) // interprété en heure locale
+  const dt = new Date(y, m - 1, d, h + 2, min, 0) //Adjusted for local time
   return dt.toISOString() // => avec Z
 }
 
@@ -160,12 +154,10 @@ async function fetchNbrMeters() {
     const n = Number(txt)
     if (!Number.isFinite(n) || n < 1) throw new Error('réponse invalide')
     nbrMeters.value = n
-    // garde le serialNumber dans [1..n]
     if (serialNumber.value < 1) serialNumber.value = 1
     if (serialNumber.value > n) serialNumber.value = n
   } catch (e) {
-    // on ne bloque pas l’UI, mais on informe
-    error.value = `Impossible de lire le nombre de compteurs (${e.message}).`
+    error.value = `Cannot read the number of smart meters (${e.message}).`
   }
 }
 
@@ -187,13 +179,13 @@ async function fetchInvoice() {
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     invoiceObj.value = await res.json()
   } catch (e) {
-    error.value = `Échec de la récupération de la facture (${e.message}).`
+    error.value = `Failed to craft Invoice (${e.message}).`
   } finally {
     busy.value = false
   }
 }
 
-// auto-refresh nbrMeters toutes les 30s
+
 let metersInterval = null
 
 onMounted(async () => {
@@ -205,7 +197,6 @@ onUnmounted(() => {
   if (metersInterval) clearInterval(metersInterval)
 })
 
-// bornes dynamiques si nbrMeters arrive après coup
 watch(nbrMeters, n => {
   if (n && serialNumber.value > n) serialNumber.value = n
 })

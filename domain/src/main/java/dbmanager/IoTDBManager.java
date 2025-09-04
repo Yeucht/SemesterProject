@@ -9,9 +9,12 @@ import org.apache.iotdb.tsfile.read.common.Field;
 import org.apache.iotdb.tsfile.read.common.RowRecord;
 
 /**
- * Manager pour IoTDB alimenté par Config et variables d’environnement.
- * Avec schema_auto_create=true, IoTDB créera
- * automatiquement storage group et timeseries au premier INSERT.
+ * IoTDB config
+ enable_auto_create_schema=true
+ default_storage_group_level=1 (partioning by device)
+ dn_metric_reporter_list=PROMETHEUS
+ dn_metric_level=IMPORTANT
+ dn_metric_prometheus_reporter_port=9091
  */
 public class IoTDBManager extends DBManager {
     private final String host;
@@ -34,14 +37,12 @@ public class IoTDBManager extends DBManager {
         );
         this.sessionPool = new SessionPool(host, port, user, password, poolSize);
 
-        // Note : plus besoin de SET STORAGE GROUP ici,
-        // IoTDB le fera automatiquement au premier INSERT
     }
 
     @Override
     public boolean clearTables() {
         if (!config.getClearTablesFlag()) {
-            System.out.println("Suppression des schémas désactivée. Skip.");
+            System.out.println("Table clearing disabled, skipping.");
             return false;
         }
 
@@ -50,10 +51,10 @@ public class IoTDBManager extends DBManager {
             sessionPool.executeNonQueryStatement(
                     "DELETE DATABASE " + STORAGE_GROUP
             );
-            System.out.println("Storage group et schémas supprimés avec succès.");
+            System.out.println("Storage group and tables deleted successfully.");
             return true;
         } catch (StatementExecutionException | IoTDBConnectionException e) {
-            System.err.println("Échec de la suppression des schémas : " + e.getMessage());
+            System.err.println("Failed to delete schemas: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -65,8 +66,6 @@ public class IoTDBManager extends DBManager {
 
     @Override
     public int getRowCount() {
-        // On compte les points écrits sur la mesure "payload" pour tous les devices
-        // (tu peux remplacer par "received_time" si tu préfères).
         final String sql = "SELECT COUNT(payload) FROM " + STORAGE_GROUP + ".**";
 
         long total = 0L;
@@ -84,19 +83,16 @@ public class IoTDBManager extends DBManager {
             e.printStackTrace();
         }
 
-        // Parité de signature avec ta méthode QuestDB (int).
-        // Attention au dépassement si tu as >2.1 milliards de lignes.
         return (total > Integer.MAX_VALUE) ? Integer.MAX_VALUE : (int) total;
     }
 
     @Override
     public int getNumberMeters() {
-        // Essai 1 : COUNT DEVICES
+        //Try: COUNT DEVICES
         final String sqlCount = "COUNT DEVICES root.smart_meter.**";
         try (SessionDataSetWrapper rs = sessionPool.executeQueryStatement(sqlCount)) {
             if (rs.hasNext()) {
                 RowRecord row = rs.next();
-                // COUNT DEVICES renvoie généralement une seule colonne numérique
                 Field f = row.getFields().get(0);
                 if (f != null) {
                     long cnt = f.getLongV(); // ou getIntV/getLongV selon version
@@ -105,10 +101,9 @@ public class IoTDBManager extends DBManager {
             }
         } catch (IoTDBConnectionException | StatementExecutionException e) {
             e.printStackTrace();
-            // on continue vers le fallback
         }
 
-        // Fallback : SHOW DEVICES et compter les lignes
+        //Fallback : SHOW DEVICES & count lines
         final String sqlShow = "SHOW DEVICES root.smart_meter.**";
         int count = 0;
         try (SessionDataSetWrapper rs = sessionPool.executeQueryStatement(sqlShow)) {

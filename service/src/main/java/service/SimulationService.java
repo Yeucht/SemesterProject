@@ -1,12 +1,14 @@
 package service;
 
 import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientResponseException;
 
 
 public class SimulationService {
 
+    @Value("${flask.base-url}")
     private static final String FLASK_BASE_URL = "http://sp-simulation:8000";
 
     private final ConfigService configService;
@@ -24,9 +26,7 @@ public class SimulationService {
         this.flaskClient = flaskClient;
     }
 
-    /**
-     * Starts the external simulation by invoking the Flask '/start' endpoint.
-     */
+
     public int startSimulation() throws Exception {
         metricsService.startRecording();
 
@@ -49,9 +49,6 @@ public class SimulationService {
     }
 
 
-    /**
-     * Stops the external simulation by invoking the Flask '/stop' endpoint.
-     */
     @Transactional
     public int stopSimulation() throws Exception {
         try {
@@ -66,7 +63,6 @@ public class SimulationService {
             return ex.getRawStatusCode();
         }
     }
-
 
 
     public boolean isRunning() {

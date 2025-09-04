@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class QuestDBManager extends DBManager {
-    // On récupère les credentials depuis l'env ou on tombe sur des valeurs par défaut
+
     private final String url;
     private final String user;
     private final String password;
@@ -25,10 +25,9 @@ public class QuestDBManager extends DBManager {
         this.password = System.getenv().getOrDefault("QUESTDB_PASSWORD", "quest");
     }
 
+    //Usefull for not logging errors at every reset
     @PostConstruct
     public void createTableIfNotExist() {
-
-
         try (Connection conn = DriverManager.getConnection(url, user, password);
              Statement stmt  = conn.createStatement();
              Statement addStmt = conn.createStatement()) {
@@ -55,7 +54,6 @@ public class QuestDBManager extends DBManager {
                 "SELECT table_name " +
                 "FROM information_schema.tables " +
                 "WHERE table_schema = 'public'";
-
 
 
         try (Connection conn = DriverManager.getConnection(url, user, password);
@@ -126,7 +124,6 @@ public class QuestDBManager extends DBManager {
         return count;
     }
 
-    // QuestDBManager.java
     public Connection openConnection() throws SQLException {
         return DriverManager.getConnection(url, user, password);
     }

@@ -30,9 +30,6 @@
         <InvoicingPage />
       </div>
 
-      <div v-else-if="currentTab === 'Query'">
-        <p>Query tab content (à compléter)</p>
-      </div>
     </div>
   </div>
 </template>
@@ -44,7 +41,7 @@ import SimulationPage from './components/SimulationPage.vue'
 import PerformancePage from "./components/PerformancePage.vue";
 import InvoicingPage from "./components/InvoicingPage.vue";
 
-const tabs = ['Simulation', 'Performances', 'Invoicing', 'Query']
+const tabs = ['Simulation', 'Performances', 'Invoicing']
 const currentTab = ref('Simulation')
 
 const config = ref({
@@ -105,7 +102,6 @@ async function fetchConfig() {
   }
 }
 
-// lit "running: true/false" et met à jour status
 async function fetchRunning() {
   try {
     const res = await fetch(running_url, { method: 'GET' })
@@ -115,7 +111,6 @@ async function fetchRunning() {
     status.value = isRunning ? 'running' : 'idle'
   } catch (e) {
     console.error('Failed to fetch running state:', e)
-    // en cas d’erreur on ne casse pas l’UI, on garde le status courant
   }
 }
 
@@ -130,7 +125,6 @@ async function toggleSimulation() {
       status.value = 'error'
       return
     }
-    // on relit l’état réel côté serveur (au cas où l’action est async)
     await fetchRunning()
   } catch (err) {
     console.error('Network error:', err)
@@ -159,7 +153,6 @@ let runningInterval = null
 
 onMounted(async () => {
   await Promise.all([fetchConfig(), fetchRunning()])
-  // poll léger pour garder l’état bouton/disable synchro
   runningInterval = setInterval(fetchRunning, 5000)
 })
 
@@ -169,19 +162,16 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* Page plus wide, alignée à gauche */
 .app {
   width: 100vw;
   padding: 1.5rem 2rem;
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji";
 }
 
-/* Contenu large mais lisible, aligné à gauche (pas centré) */
 .page-inner {
   width: clamp(1000px, 95vw, 1600px);
 }
 
-/* Titre plus sobre */
 h1 {
   margin: 0 0 1rem 0;
   font-size: 1.75rem;
@@ -189,7 +179,6 @@ h1 {
   letter-spacing: -0.01em;
 }
 
-/* Tabs plus grandes, left-aligned, look moderne */
 .tabs {
   display: flex;
   gap: 0.5rem;
@@ -222,7 +211,6 @@ h1 {
   border-color: #111827;
 }
 
-/* Bloc des contrôles simulation, aligné à gauche et mieux espacé */
 .simulation-controls {
   margin-top: 1rem;
   display: flex;
@@ -247,13 +235,12 @@ h1 {
   transform: translateY(1px);
 }
 
-/* Petit badge de status coloré */
 .status {
   margin-left: 0.25rem;
   font-weight: 600;
 }
-.status[data-status="running"] { color: #059669; } /* green-600 */
-.status[data-status="idle"]    { color: #2563eb; } /* blue-600  */
-.status[data-status="error"]   { color: #dc2626; } /* red-600   */
+.status[data-status="running"] { color: #059669; }
+.status[data-status="idle"]    { color: #2563eb; }
+.status[data-status="error"]   { color: #dc2626; }
 </style>
 

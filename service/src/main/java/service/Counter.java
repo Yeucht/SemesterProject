@@ -1,6 +1,6 @@
 package service;
 
-
+//This counter serves as an insert count, because getRowCount is query time-consuming
 public class Counter {
 
     private int counter;

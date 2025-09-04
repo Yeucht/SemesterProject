@@ -17,8 +17,9 @@ public class PrometheusService {
     private String prometheusBaseUrl;
 
     private final RestTemplate restTemplate = new RestTemplate();
-    private final String step = "10s"; //définit la fenêtre de avg/
+    private final String step = "10s";
 
+    //Treating prometheus series
     public Map<Instant, Double> queryTimeSeries(String promql, Instant start, Instant end) {
 
         URI uri = UriComponentsBuilder
@@ -49,17 +50,14 @@ public class PrometheusService {
             return series;
         }
 
-        // Beaucoup de métriques retournent plusieurs séries (labels différents).
-        // Ici, on AGRÈGE (sum) toutes les séries par timestamp pour rester compatible
-        // avec Map<Instant, Double>. Si tu préfères garder chaque série, je te donne une variante plus bas.
         for (JsonNode serie : result) {
-            JsonNode values = serie.path("values"); // [[ <ts sec double>, "<value string>" ], ...]
+            JsonNode values = serie.path("values");
             for (JsonNode v : values) {
-                double tsSec = v.get(0).asDouble();              // <-- garder les décimales
+                double tsSec = v.get(0).asDouble();
                 Instant ts = Instant.ofEpochMilli((long) (tsSec * 1000.0));
 
                 String vs = v.get(1).asText();
-                // Prometheus peut renvoyer "NaN", "+Inf", "-Inf" -> on ignore ces points
+
                 double val;
                 try {
                     val = Double.parseDouble(vs);
@@ -68,7 +66,7 @@ public class PrometheusService {
                     continue;
                 }
 
-                series.merge(ts, val, Double::sum); // somme si plusieurs séries
+                series.merge(ts, val, Double::sum);
             }
         }
 

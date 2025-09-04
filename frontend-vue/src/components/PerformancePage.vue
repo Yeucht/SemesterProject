@@ -60,7 +60,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 
-const grafanaBase = 'http://localhost:3000' // adapte si besoin
+const grafanaBase = 'http://localhost:3000'
 const dashboards = [
   { uid: 'sp-overview', title: 'Overview' },
   { uid: 'sp-jvm', title: 'JVM' },
@@ -72,20 +72,19 @@ const dashboards = [
 ]
 
 const selectedUid = ref(dashboards[0].uid)
-const instanceVar = ref('All') // sera passé en ?var-instance=...
-const poolVar = ref('All')     // ?var-pool=...
+const instanceVar = ref('All')
+const poolVar = ref('All')
 const defaultRange = ref('now-15m')
 const refreshEvery = ref('5s')
 const cacheBust = ref(Date.now())
 
-const showPool = computed(() => selectedUid.value === 'sp-db') // le var pool n’est utile que pour DB
+const showPool = computed(() => selectedUid.value === 'sp-db')
 
 function bump() {
   cacheBust.value = Date.now()
 }
 
 const dashboardUrl = computed(() => {
-  // slug: peut être n’importe quoi; Grafana ne s’en sert que pour l’URL lisible
   const slug = {
     'sp-overview': 'sp-overview',
     'sp-jvm': 'sp-jvm',
@@ -106,8 +105,8 @@ const dashboardUrl = computed(() => {
   if (instanceVar.value) params.set('var-instance', instanceVar.value)
   if (showPool.value && poolVar.value) params.set('var-pool', poolVar.value)
 
-  // on embarque le dashboard complet (pas d-solo) pour garder zoom/timepicker/variables
-  params.set('kiosk', '1') // masque le menu gauche + topbar
+  //Full dashboard
+  params.set('kiosk', '1') //Hides sidebar
   return `${grafanaBase}/d/${selectedUid.value}/${slug}?${params.toString()}&_=${cacheBust.value}`
 })
 </script>
@@ -130,7 +129,7 @@ const dashboardUrl = computed(() => {
 }
 .dashboard-frame {
   width: 100%;
-  height: 900px; /* ajuste selon la hauteur de tes dashboards */
+  height: 900px;
   position: relative;
   z-index: 1;
   pointer-events: auto;

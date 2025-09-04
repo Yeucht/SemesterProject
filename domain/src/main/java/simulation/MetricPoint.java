@@ -12,12 +12,10 @@ public class MetricPoint {
 
     private Instant timestamp;
 
-    // App
+    //App
     private long insertedSoFar;
     private double cpuUsage10s;          // %
     private long totalMemoryUsed;          // legacy: heap bytes (tu peux déprécier plus tard)
-
-    // Nouveaux champs (alignés aux panels)
     private double diskUsed;          // %
     private double rps10s;            // req/s (status=200)
     private long heapUsedBytes;       // bytes
@@ -32,7 +30,7 @@ public class MetricPoint {
     private long   dbWalBacklog;   // (txns en retard QDB / tasks en attente IoTDB)
 
 
-    // Réseau si tu veux les remplir plus tard
+    //Network, not set for now
     private double netIn;
     private double netOut;
 
@@ -40,7 +38,6 @@ public class MetricPoint {
     @JoinColumn
     private SimulationRun run;
 
-    // Getters & Setters
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }

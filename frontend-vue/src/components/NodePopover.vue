@@ -53,7 +53,7 @@ defineEmits(['close'])
   display:flex; align-items:center; gap:.6rem; justify-content:flex-start;
 }
 
-/* inputs normaux */
+/* Normal inputs */
 .popover :deep(input[type="number"]),
 .popover :deep(input[type="text"]),
 .popover :deep(select),
@@ -75,7 +75,7 @@ defineEmits(['close'])
   background:#ffffff;
 }
 
-/* ⬇︎ états désactivés lisibles */
+/* Disabled states */
 .popover :deep(fieldset[disabled]){ opacity:.95 }
 .popover :deep(input:disabled),
 .popover :deep(select:disabled),

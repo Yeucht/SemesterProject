@@ -43,37 +43,34 @@ public class SimulationConfig {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-
     @Enumerated(EnumType.STRING)
     private DatabaseType dbType = DatabaseType.QUESTDB;
 
-    //would be suitable to create meterConfig and HESConfig eventually
-
     //Individual Meters Config
-    private boolean meterFlag = true; //active les smartmeters individuels
-    private int meterRate = 4; //rate auquel les compteurs envoient les données
-    private float meterRateRandomness = 0.2f; //between (1-x) and (1+x) * meterRate
+    private boolean meterFlag = true; //Activate
+    private int meterRate = 4; //Indiv meters sending rate (per hour)
+    private float meterRateRandomness = 0.2f; //sending rate is between (1-x) and (1+x) * meterRate_associated_time_interval
     private int nbrSmartMeters = 5000;
-    private int probeRate = 4; //rate auquel les compteurs prennent des données
+    private int probeRate = 4; //Indiv meters probing rate (must be >= meterRate)
 
     //HES Config
-    private boolean hesFlag = true; // active les Head-end systems
-    private boolean hesSynchronized = false; //all HES at time t or if split at different times
-    private int hesRate = 2; //par jour, rate auquel les HES envoient les batches de données
+    private boolean hesFlag = true; //Activate
+    private boolean hesSynchronized = false; //all HES at time t (true) or if split at different times
+    private int hesRate = 2; //HES sending rate (per day)
     private int nbrHES = 400;
+    private int nbrMetersPerHES = 10; // smartmeters par HES
     private float nbrMetersPerHESRandomness = 0.2f; //between (1-x) and (1+x) * nbrMetersPerHES
     private int hesRateRandomness = 50;
-    /*[0,100] defines if HES data comes at perfectly regular times (0) or if it's random over the interval between
-     a single smart meter is supposed to send data (1/hesRate)
+    /*[0,100] defines if HES data comes at perfectly regular times during the interval (0) or if it's random over the interval
     Here 0 means at time t=0, one HES sends a datapacket. On time t+(HESRate/nbrHES), a second HES sends data.
     100 means the first sending time for each HES is set completely randomly over the first loop time (i.e. 1/HESRate day)
+    Inbetween = linear interpolation
     */
 
     //HES Meters Config
-    private int hesMeterRate = 4; //rate auquel les compteurs envoient les données
-    private float hesMeterRateRandomness = 0.2f; //between (1-x) and (1+x) * meterRate
-    private int hesProbeRate = 4; //rate auquel les compteurs prennent des données
-    private int nbrMetersPerHES = 10; // smartmeters par HES
+    private int hesMeterRate = 4; //Sending rate
+    private float hesMeterRateRandomness = 0.2f; //sending rate is between (1-x) and (1+x) * meterRate_associated_time_interval
+    private int hesProbeRate = 4; //Probing rate
 
 
     //MDMS Config
@@ -123,14 +120,13 @@ public class SimulationConfig {
         }
     }
 
+    //normality check
     public void normalize() {
-        // clamp positifs (si tu veux)
         if (probeRate < 0) probeRate = 0;
         if (hesProbeRate < 0) hesProbeRate = 0;
         if (meterRate < 0) meterRate = 0;
         if (hesMeterRate < 0) hesMeterRate = 0;
 
-        // règles de cohérence APRES que tous les champs sont connus
         if (meterRate > probeRate) {
             meterRate = probeRate;
         }

@@ -8,13 +8,10 @@ import java.util.Optional;
 
 public interface MetricPointRepository extends JpaRepository<MetricPoint, Long> {
 
-    // Le plus récent
     Optional<MetricPoint> findTopByOrderByTimestampDesc();
 
-    // Les 100 plus récents
     List<MetricPoint> findTop100ByOrderByTimestampDesc();
 
-    // Tous les points pour un run donné
     List<MetricPoint> findByRunIdOrderByTimestampAsc(Long runId);
 }
 

@@ -29,16 +29,15 @@ public class IoTDBExtraction extends Extraction {
     @Override
     public Invoice craftInvoice(Date start, Date end, int serialNumber, double priceKwh) {
         if (start == null || end == null) {
-            throw new IllegalArgumentException("start/end ne peuvent pas être null");
+            throw new IllegalArgumentException("start/end cannot be null");
         }
         if (!start.before(end)) {
-            throw new IllegalArgumentException("start doit être strictement avant end");
+            throw new IllegalArgumentException("start must come before end");
         }
 
-        final long tStart = start.getTime(); // epoch millis
+        final long tStart = start.getTime(); //epoch millis
         final long tEnd   = end.getTime();
 
-        // on agrège sur le device du compteur ciblé
         final String device = STORAGE_GROUP + ".meter_" + serialNumber;
         final String sql =
                 "SELECT SUM(payload) FROM " + device +
@@ -47,7 +46,6 @@ public class IoTDBExtraction extends Extraction {
         double totalConsumption = 0.0;
 
         try (SessionDataSetWrapper rs = manager.getSessionPool().executeQueryStatement(sql)) {
-            // La requête renvoie au plus une ligne avec une seule colonne : SUM(payload)
             if (rs.hasNext()) {
                 RowRecord row = rs.next();
                 if (row != null && row.getFields() != null && !row.getFields().isEmpty()) {
@@ -59,7 +57,7 @@ public class IoTDBExtraction extends Extraction {
                 }
             }
         } catch (IoTDBConnectionException | StatementExecutionException e) {
-            throw new RuntimeException("Erreur IoTDB craftInvoice: " + e.getMessage(), e);
+            throw new RuntimeException("IoT Invoice crafting error: " + e.getMessage(), e);
         }
 
         return new Invoice(start, end, priceKwh, totalConsumption, serialNumber);

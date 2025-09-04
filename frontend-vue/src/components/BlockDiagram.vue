@@ -2,19 +2,19 @@
   <div class="diagram" @click="closePop()">
     <svg viewBox="0 0 1200 600" class="svg">
       <defs>
-        <!-- flèche -->
+        <!-- arrows -->
         <marker id="arrowHead" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto" markerUnits="strokeWidth">
           <polygon points="0,0 12,4 0,8" fill="#1f2937" />
         </marker>
-        <!-- style texte -->
+        <!-- text style -->
         <style>
           .t-title{ font: 700 14px/1 'Inter', system-ui; fill:#111827 }
           .t-sub{ font: 12px/1 'Inter', system-ui; fill:#475569 }
         </style>
       </defs>
 
-      <!-- === IMAGES Smart meters (cliquables) === -->
-      <!-- HES Smart Meters (haut gauche) -->
+      <!-- === IMAGES Smart meters === -->
+      <!-- HES Smart Meters -->
       <image
           class="hot img"
           :href="imgHesMeters"
@@ -24,7 +24,7 @@
           @click.stop="open('hesMeters', $event)"
           preserveAspectRatio="xMidYMid meet"
       />
-      <!-- Individual Smart Meters (bas gauche) -->
+      <!-- Individual Smart Meters -->
       <image
           class="hot img"
           :href="imgMeters"
@@ -37,7 +37,7 @@
 
       <!-- === BLOCS === -->
 
-      <!-- HES (groupe cliquable + hitbox couvrant image + titre) -->
+      <!-- HES  -->
       <g class="hot" @click.stop="open('hes', $event)">
         <rect
             class="hitbox"
@@ -57,7 +57,7 @@
         />
       </g>
 
-      <!-- MDMS (déjà groupé et cliquable) -->
+      <!-- MDMS -->
       <g @click.stop="open('mdms', $event)" class="hot">
         <rect class="box-mdms" :x="mdmsRect.x" :y="mdmsRect.y" :width="mdmsRect.w" :height="mdmsRect.h" rx="16"/>
         <text class="t-title" :x="centerX(mdmsRect)" :y="mdmsRect.y+28" text-anchor="middle" font-weight="700">
@@ -65,7 +65,7 @@
         </text>
       </g>
 
-      <!-- DB (groupe cliquable + hitbox couvrant image + titre) -->
+      <!-- DB -->
       <g class="hot" @click.stop="open('db', $event)">
         <rect
             class="hitbox"
@@ -82,7 +82,7 @@
         <text class="t-title" :x="centerX(dbRect)" :y="dbRect.y" text-anchor="middle" font-weight="700">Database</text>
       </g>
 
-      <!-- LEGEND/labels images à gauche -->
+      <!-- LEGEND/labels images-->
       <text class="t-title" :x="centerX(imgMetersRect)" :y="imgMetersRect.y-10" text-anchor="middle" font-weight="700">
         Individual Smart Meters ({{ config.nbrSmartMeters }})
       </text>
@@ -91,7 +91,7 @@
         HES Smart Meters (~{{ config.nbrMetersPerHES }} / HES)
       </text>
 
-      <!-- === FLÈCHES (bords→bords) === -->
+      <!-- === FLÈCHES === -->
       <!-- meters indiv -> MDMS -->
       <path class="arrow" :d="edgeRightToLeft(imgMetersRect, mdmsRect)" marker-end="url(#arrowHead)"
             :style="{ opacity: config.meterFlag ? 1 : 0.55 }"/>
@@ -139,7 +139,10 @@
         </label>
 
         <label>
-          Rate randomness
+          Rate randomness (0...1)
+          <HelpHint
+              text="The time interval between two packets will be drawn from U[(1-x)*t, (1+x)*t], where t is the interval associated with Send Rate."
+          />
           <input
               type="number" min="0" max="1" step="0.05"
               v-model.number="local.meterRateRandomness"
@@ -166,7 +169,6 @@
         :x="pop.x" :y="pop.y"
         @close="closePop"
     >
-      <!-- désactivé si HES inactif -->
       <fieldset :disabled="!local.hesFlag">
         <label>
           Average number per HES
@@ -180,6 +182,9 @@
 
         <label>
           Associated randomness
+          <HelpHint
+              text="U[(1-x)*N, (1+x)*N] where N is the number of meters per HES."
+          />
           <input
               type="number" min="0" max="1" step="0.05"
               v-model.number="local.nbrMetersPerHESRandomness"
@@ -210,7 +215,10 @@
         </label>
 
         <label>
-          Rate randomness
+          Rate randomness (0...1)
+          <HelpHint
+              text="The time interval between two packets sent to the HES will be drawn from U[(1-x)*t, (1+x)*t], where t is the interval associated with Send Rate."
+          />
           <input
               type="number" min="0" max="1" step="0.05"
               v-model.number="local.hesMeterRateRandomness"
@@ -261,6 +269,10 @@
 
         <label>
           Schedule randomness (0..100)
+          <HelpHint
+              text="0 means perfectly split within the time interval associated with HES Send Rate. 100 means randomly drawn over the interval (uniform). Values inbetween are setting a linear interpolation."
+              max-width="400px"
+          />
           <input
               type="number" min="0" max="100" step="1"
               v-model.number="local.hesRateRandomness"
@@ -286,6 +298,9 @@
 
       <label>
         Buffer size (rows)
+        <HelpHint
+            text="Number of rows in the app-side buffer. Note that QuestDB has a time buffer of 1hour that can be disabled in QuestDBInjection class"
+        />
         <input
             type="number" min="0" step="10"
             v-model.number="local.mdmsBatchSize"
@@ -300,7 +315,6 @@
       <label>Type
         <select v-model="local.dbType" @change="emitUpdate">
           <option value="IOTDB">IOTDB</option>
-          <option value="INFLUXDB">INFLUXDB</option>
           <option value="QUESTDB">QUESTDB</option>
         </select>
       </label>
@@ -316,6 +330,7 @@ import imgMeters from '../assets/smartmeters.png?url'
 import imgHesMeters from '../assets/smartmeters.png?url'
 import imgDb from '../assets/database.png?url'
 import imgServers from '../assets/servers.png?url'
+import HelpHint from './HelpHint.vue'
 
 const props = defineProps({ config: { type: Object, required: true }})
 const emit = defineEmits(['update'])
@@ -324,14 +339,14 @@ const local = reactive({ ...props.config })
 watch(() => props.config, v => Object.assign(local, v || {}))
 function emitUpdate(){ emit('update', { ...local }) }
 
-/* positions */
+/*positions*/
 const imgHesMetersRect = reactive({ x: 60,  y: 100,  w: 220, h: 120 })
 const imgMetersRect     = reactive({ x: 60,  y: 355, w: 220, h: 120 })
 const hesRect           = reactive({ x: 460, y: 60,  w: 330, h: 200 })
 const mdmsRect          = reactive({ x: 460, y: 330, w: 330, h: 170 })
 const dbRect            = reactive({ x: 980, y: 335,  w: 160, h: 160 })
 
-/* helpers géométrie */
+/*helpers */
 const centerX = r => r.x + r.w/2
 const centerY = r => r.y + r.h/2
 
@@ -350,7 +365,7 @@ function edgeBottomToTop(from, to){
   return `M ${x1} ${y1} L ${x2} ${y2}`
 }
 
-/* popovers */
+/*popovers*/
 const openKey = ref(null)
 const pop = reactive({ x:0, y:0 })
 function open(key, ev){
@@ -362,7 +377,7 @@ function open(key, ev){
 }
 function closePop(){ openKey.value = null }
 
-/* largeur auto des inputs */
+/*Auto width on inputs */
 function autoWidth(v, min = 5, max = 14) {
   const s = String(v ?? '');
   const len = s.replace('-', '').length || 1;

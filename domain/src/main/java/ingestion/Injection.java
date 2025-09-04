@@ -12,7 +12,6 @@ public abstract class Injection {
         this.config = config;
     }
 
-    // Method to be overridden for inserting records
     public abstract void insertData(List<DataPacket> data);
 
 }

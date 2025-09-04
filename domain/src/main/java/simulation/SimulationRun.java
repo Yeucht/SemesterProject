@@ -43,8 +43,6 @@ public class SimulationRun {
         this.metrics.add(point);
     }
 
-    // Getters & Setters
-
     public Long getId() {
         return id;
     }

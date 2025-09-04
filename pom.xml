@@ -7,7 +7,7 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.2.0</version>
-        <relativePath/> <!-- Important to prevent looking for it locally -->
+        <relativePath/>
     </parent>
 
     <groupId>org.unil</groupId>

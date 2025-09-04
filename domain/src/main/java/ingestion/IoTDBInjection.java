@@ -10,11 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
 
-/**
- * Injection implementation pour IoTDB
- * - On crée automatiquement les time‑series grâce à schema_auto_create=true
- * - Pour chaque payload, on envoie une « ligne » avec TOUTES les colonnes
- */
+
 public class IoTDBInjection extends Injection implements AutoCloseable  {
     private static final String STORAGE_GROUP = "root.smart_meter";
     private final IoTDBManager dbManager;
@@ -34,15 +30,15 @@ public class IoTDBInjection extends Injection implements AutoCloseable  {
             TSDataType.INT64, TSDataType.INT64, TSDataType.DOUBLE
     );
 
-    // Buffers persistants (partagés entre invocations)
-// → instanciés dans le constructeur
+
+    //Buffer
     private final List<String> deviceIds;
     private final List<Long> times;
     private final List<List<String>> measurementsList;
     private final List<List<TSDataType>> typesList;
     private final List<List<Object>> valuesList;
 
-    // Simple protection si la classe est appelée de plusieurs threads
+    //Thread safety
     private final Object lock = new Object();
 
     public IoTDBInjection(SimulationConfig config) {
@@ -55,7 +51,6 @@ public class IoTDBInjection extends Injection implements AutoCloseable  {
         }
         this.pool = this.dbManager.getSessionPool();
 
-        // init buffers avec capacité = BATCH_SIZE
         this.deviceIds = new ArrayList<>(BATCH_SIZE);
         this.times = new ArrayList<>(BATCH_SIZE);
         this.measurementsList = new ArrayList<>(BATCH_SIZE);
@@ -64,7 +59,6 @@ public class IoTDBInjection extends Injection implements AutoCloseable  {
     }
 
 
-    // Appel depuis ton service
     public void insertData(List<DataPacket> packets) {
         if (packets == null || packets.isEmpty()) return;
         long rows = 0;
@@ -108,20 +102,17 @@ public class IoTDBInjection extends Injection implements AutoCloseable  {
                 }
             }
         }
-        // ici on ne force pas le flush : on laisse le seuil gérer,
-        // mais tu peux appeler flush() si tu veux garantir la durabilité à la fin d’un lot.
-        // flush();
+        // Flush is not called, we wait for the buffer size to be hit
         if (rows > 0) {
             System.out.println("Buffered " + rows + " row(s) for IoTDB (insertRecords).");
         }
     }
 
-    // Ajout + flush automatique si seuil dépassé
+    //Flus when buffer out of range
     private void enqueue(String deviceId, long ts, List<Object> values) {
         synchronized (lock) {
             deviceIds.add(deviceId);
             times.add(ts);
-            // on réutilise les mêmes références pour éviter les allocs inutiles
             measurementsList.add(MEASUREMENTS);
             typesList.add(TYPES);
             valuesList.add(values);
@@ -132,7 +123,6 @@ public class IoTDBInjection extends Injection implements AutoCloseable  {
         }
     }
 
-    // Appel manuel possible (ex: shutdown hook, fin de traitement, timer)
     public void flush() {
         synchronized (lock) {
             if (!deviceIds.isEmpty()) {
@@ -141,7 +131,7 @@ public class IoTDBInjection extends Injection implements AutoCloseable  {
         }
     }
 
-    // Ne pas appeler hors section synchronized
+    //For synchronized calls
     private void doFlushUnsafe() {
         try {
             pool.insertRecords(deviceIds, times, measurementsList, typesList, valuesList);
@@ -159,6 +149,7 @@ public class IoTDBInjection extends Injection implements AutoCloseable  {
         }
     }
 
+    //Autocloseable override (inserts buffer when app turns off)
     @Override
     public void close() {
         flush();

@@ -26,7 +26,7 @@ public class InvoiceService {
     }
 
     public Invoice craftInvoice(int serialNumber, double priceKwh){
-        Date end = new Date(); // maintenant
+        Date end = new Date();
         Date start = new Date(System.currentTimeMillis() - 7L * 24 * 60 * 60 * 1000);
         return extraction.craftInvoice(start, end, serialNumber, priceKwh);
     }

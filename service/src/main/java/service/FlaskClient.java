@@ -43,7 +43,7 @@ public class FlaskClient {
         return restTemplate.exchange(url, HttpMethod.GET, HttpEntity.EMPTY, String.class);
     }
 
-    // Helper pour propager proprement une erreur rest client
+    //Error propagate
     public static ResponseEntity<?> propagate(RestClientResponseException ex) {
         return ResponseEntity.status(ex.getRawStatusCode()).body(ex.getResponseBodyAsString());
     }

@@ -76,16 +76,16 @@ public class MetricsService {
         SimulationConfig config = getOrCreate(configService.getConfig());
         currentRun.setConfig(config);
 
-        // ========= 1) Récupérer les séries =========
+        //Fetching Prometheus Series
         Map<String, Map<Instant, Double>> app = fetchAppSeries(springbootInstance, start, end);
         Map<String, Map<Instant, Double>> db  = fetchDbSeries(config, start, end);
 
-        // ========= 2) Union des timestamps =========
+        //Join timestamps
         Set<Instant> allTimestamps = new TreeSet<>();
         app.values().forEach(m -> allTimestamps.addAll(m.keySet()));
         db.values().forEach(m  -> allTimestamps.addAll(m.keySet()));
 
-        // ========= 3) LVCF + build points =========
+
         List<MetricPoint> points = new ArrayList<>();
 
         // --- APP last values ---
@@ -98,7 +98,7 @@ public class MetricsService {
         Long    lastNonHeap = null;
         Integer lastThreads = null;
 
-        // --- DB last values ---
+
         Double  lastDbQps = null;
         Double  lastDbConns = null;
         Double  lastDbErr = null;
@@ -162,87 +162,72 @@ public class MetricsService {
         currentRun = null;
     }
 
-    /** Petite utilité pour éviter les get/containsKey verbeux */
+    //avoiding redundant get(key)
     private static Map<Instant, Double> v(Map<String, Map<Instant, Double>> group, String key) {
         return group.getOrDefault(key, Map.of());
     }
 
-    /** =======================
-     *  Helpers : séries APP
-     *  ======================= */
+
+    //App
     private Map<String, Map<Instant, Double>> fetchAppSeries(String springbootInstance, Instant start, Instant end) {
         Map<String, Map<Instant, Double>> m = new HashMap<>();
 
-        // avg_over_time -> besoin d'une fenêtre
         m.put("cpu", prometheusService.queryTimeSeries(
                 "avg_over_time(process_cpu_usage{instance=~\"" + springbootInstance + "\"}[10s]) * 100", start, end));
 
-        // legacy totalMemoryUsed = heap (gauge)
         m.put("memLegacy", prometheusService.queryTimeSeries(
                 "sum(jvm_memory_used_bytes{area=\"heap\",instance=~\"" + springbootInstance + "\"})", start, end));
 
         m.put("inserted", prometheusService.queryTimeSeries(
                 "spservice_inserted_so_far{instance=~\"" + springbootInstance + "\"}", start, end));
 
-        // Disque (gauges)
         m.put("diskUsed", prometheusService.queryTimeSeries(
                 "100 * (1 - (disk_free_bytes{instance=~\"" + springbootInstance + "\"} / " +
                         "disk_total_bytes{instance=~\"" + springbootInstance + "\"}))", start, end));
 
-        // rate(...) -> besoin d'une fenêtre
         m.put("rps", prometheusService.queryTimeSeries(
                 "sum(rate(http_server_requests_seconds_count{status=\"200\",instance=~\"" + springbootInstance + "\"}[10s]))", start, end));
 
-        // Heap / Non-heap (gauges)
         m.put("heapUsed", prometheusService.queryTimeSeries(
                 "sum without (id) (jvm_memory_used_bytes{area=\"heap\",instance=~\"" + springbootInstance + "\"})", start, end));
 
         m.put("nonHeapUsed", prometheusService.queryTimeSeries(
                 "sum without (id) (jvm_memory_used_bytes{area=\"nonheap\",instance=~\"" + springbootInstance + "\"})", start, end));
 
-        // Threads (gauge)
         m.put("threadsLive", prometheusService.queryTimeSeries(
                 "sum(jvm_threads_live_threads{instance=~\"" + springbootInstance + "\"})", start, end));
 
         return m;
     }
 
-
-    /** =======================
-     *  Helpers : séries DB (comparables)
-     *  ======================= */
+    //DB
     private Map<String, Map<Instant, Double>> fetchDbSeries(SimulationConfig config, Instant start, Instant end) {
         Map<String, Map<Instant, Double>> m = new HashMap<>();
         SimulationConfig.DatabaseType dbType = config.getDbType();
 
         switch (dbType) {
             case QUESTDB: {
-                // QPS = PGWire OR REST JSON (évite '+')
                 m.put("db_qps", prometheusService.queryTimeSeries(
                         "sum( rate(questdb_pg_wire_queries_completed_total{instance=~\"" + questDbInstance + "\"}[10s])"
                                 + " or rate(questdb_json_queries_completed_total{instance=~\"" + questDbInstance + "\"}[10s]) )",
                         start, end));
 
-                // Connexions = union des 3 compteurs
                 m.put("db_conns", prometheusService.queryTimeSeries(
                         "sum( questdb_pg_wire_connections{instance=~\"" + questDbInstance + "\"}"
                                 + " or questdb_line_tcp_connections{instance=~\"" + questDbInstance + "\"}"
                                 + " or questdb_http_connections{instance=~\"" + questDbInstance + "\"} )",
                         start, end));
 
-                // Erreurs/s
                 m.put("db_err_qps", prometheusService.queryTimeSeries(
                         "sum( rate(questdb_unhandled_errors_total{instance=~\"" + questDbInstance + "\"}[10s])"
                                 + " or rate(questdb_pg_wire_errors_total{instance=~\"" + questDbInstance + "\"}[10s]) )",
                         start, end));
 
-                // Heap JVM utilisée (gauge)
                 m.put("db_heap", prometheusService.queryTimeSeries(
                         "(questdb_memory_jvm_total{instance=~\"" + questDbInstance + "\"}"
                                 + " - questdb_memory_jvm_free{instance=~\"" + questDbInstance + "\"})",
                         start, end));
 
-                // Backlog WAL (gauge)
                 m.put("db_wal_backlog", prometheusService.queryTimeSeries(
                         "(questdb_wal_apply_seq_txn{instance=~\"" + questDbInstance + "\"}"
                                 + " - questdb_wal_apply_writer_txn{instance=~\"" + questDbInstance + "\"})",
@@ -251,27 +236,22 @@ public class MetricsService {
             }
 
             case IOTDB: {
-                // QPS (rate -> [10s]) sans '+'
                 m.put("db_qps", prometheusService.queryTimeSeries(
                         "max by (instance) (rate(query_execution_seconds_count{instance=~\"" + iotDbInstance + "\"}[10s]))",
                         start, end));
 
-                // Connexions (gauge)
                 m.put("db_conns", prometheusService.queryTimeSeries(
                         "sum(thrift_connections{instance=~\"" + iotDbInstance + "\"})",
                         start, end));
 
-                // Erreurs/s (rate -> [10s])
                 m.put("db_err_qps", prometheusService.queryTimeSeries(
                         "sum(rate(logback_events_total{level=\"error\",instance=~\"" + iotDbInstance + "\"}[10s]))",
                         start, end));
 
-                // Heap JVM (gauge)
                 m.put("db_heap", prometheusService.queryTimeSeries(
                         "sum by (instance) (jvm_memory_used_bytes{area=\"heap\",instance=~\"" + iotDbInstance + "\"})",
                         start, end));
 
-                // Backlog (gauge)
                 m.put("db_wal_backlog", prometheusService.queryTimeSeries(
                         "sum(queue{name=\"flush\",status=\"waiting\",instance=~\"" + iotDbInstance + "\"})",
                         start, end));

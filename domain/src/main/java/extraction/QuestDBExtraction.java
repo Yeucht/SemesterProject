@@ -19,15 +19,15 @@ public class QuestDBExtraction extends Extraction {
 
     @Override
     public Invoice craftInvoice(Date start, Date end, int serialNumber, double priceKwh) {
-        // 1) Sécuriser les bornes
+
         if (start == null || end == null) {
-            throw new IllegalArgumentException("start et end ne peuvent pas être null");
+            throw new IllegalArgumentException("start and end cannot be null");
         }
         if (!start.before(end)) {
-            throw new IllegalArgumentException("start doit être strictement avant end");
+            throw new IllegalArgumentException("start must come before end");
         }
 
-        // 2) Conversion Date -> Timestamp (QuestDB accepte java.sql.Timestamp via wire PG)
+        //date conversion
         final Timestamp tsStart = Timestamp.from(start.toInstant());
         final Timestamp tsEnd   = Timestamp.from(end.toInstant());
 
@@ -47,7 +47,6 @@ public class QuestDBExtraction extends Extraction {
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    // SUM(...) peut être NULL si aucune ligne : on fallback à 0
                     totalConsumption = rs.getDouble("total_consumption");
                     if (rs.wasNull()) {
                         totalConsumption = 0.0;
@@ -55,11 +54,9 @@ public class QuestDBExtraction extends Extraction {
                 }
             }
         } catch (SQLException e) {
-            // À toi de voir si tu préfères logger et remonter, ou transformer en RuntimeException
-            throw new RuntimeException("Erreur lors de l'agrégation QuestDB: " + e.getMessage(), e);
+            throw new RuntimeException("QuestDB aggreagtion failed: " + e.getMessage(), e);
         }
 
-        // 3) Construire la facture
         return new Invoice(start, end, priceKwh, totalConsumption, serialNumber);
     }
 }

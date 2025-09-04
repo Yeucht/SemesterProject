@@ -46,10 +46,10 @@ public class ConfigService {
     }
 
     public ResponseEntity<?> applyAndPushConfig(SimulationConfig newConfig) {
-        // 1) mettre à jour local
+        //Local update
         updateConfig(newConfig);
 
-        // 2) pousser vers Flask et propager la réponse telle quelle
+        //Flask update
         try {
             ResponseEntity<FlaskConfigResponse> resp = flaskClient.postConfig(newConfig);
             return ResponseEntity.status(resp.getStatusCode()).body(resp.getBody());

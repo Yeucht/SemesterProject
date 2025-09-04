@@ -36,7 +36,7 @@ public class ExtractionController {
         return invoiceService.craftInvoice(start, end, serialNumber, priceKwh);
     }
 
-    //7 jours
+    //7 days
     @GetMapping(value = "/invoice", params = {"serialNumber", "priceKwh", "!start", "!end"})
     public Invoice getInvoiceDefaultWindow(
             @RequestParam("serialNumber") int serialNumber,
