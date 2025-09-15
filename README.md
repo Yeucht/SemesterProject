@@ -34,7 +34,7 @@ A Spring Boot backend coordinates the ingestion, while a Vue.js dashboard allows
 ## Installation
 
 ### Prerequisites
-- [**Docker Desktop 4.43.2+**](https://docs.docker.com/desktop/release-notes/) (Windows 10 64-bit or later, or any Docker-enabled Unix VM)
+- [**Docker Desktop 4.43.2+**](https://docs.docker.com/desktop/release-notes/#4432) (Windows 10 64-bit or later, or any Docker-enabled Unix VM)
 - **WSL2** enabled on Windows
 - Optional: [**MySQL Workbench 8.0.40**](https://dev.mysql.com/downloads/workbench/)
 
