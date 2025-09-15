@@ -50,7 +50,7 @@ dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /nores
 
 ### 2. Install Docker Desktop
 
-2.1 [**Download Docker Desktop 4.43.2**](https://docs.docker.com/desktop/release-notes/?utm_source=chatgpt.com#4432)
+2.1 [**Download Docker Desktop 4.43.2**](https://docs.docker.com/desktop/release-notes/#4432)
 
 2.2 Run the installer and check “Use WSL2”
 
