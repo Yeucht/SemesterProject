@@ -39,14 +39,11 @@ A Spring Boot backend coordinates the ingestion, while a Vue.js dashboard allows
 - Optional: [**MySQL Workbench 8.0.40**](https://dev.mysql.com/downloads/workbench/)
 
 ### 1. Activate the VM
-### 1.1 Enable WSL2 (Windows only)
+### 1.1 Install WSL (Windows only)
 ```powershell
-dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
-dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
+wsl --install
 ```
 1.2 Restart your PC
-
-1.3 Install the WSL2 kernel
 
 ### 2. Install Docker Desktop
 
